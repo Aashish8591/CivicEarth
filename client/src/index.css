@@ -1,7 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+:root {
+  --civic-primary: #1A4E8A;
+  --civic-secondary: #007BFF;
+  --civic-success: #28C76F;
+  --civic-warning: #FFC107;
+  --civic-danger: #DC3545;
+  --civic-bg: #F8F9FA;
+  --civic-card: #FFFFFF;
+  --civic-text-primary: #212529;
+  --civic-text-secondary: #6C757D;
+}
 
 *{
-  font-family: "Outfit", sans-serif;
+  font-family: "Inter", sans-serif;
 }
