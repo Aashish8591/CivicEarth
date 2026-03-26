@@ -1,145 +1,170 @@
-import React, { useState } from 'react'
-import { BadgeCheck, Heart, Repeat2, MessageCircle, Share2, Send } from 'lucide-react'
-import moment from 'moment'
+import React, { useState } from "react";
+import { BadgeCheck } from "lucide-react";
+import moment from "moment";
 
 const PostCard = ({ post }) => {
-    const [showComments, setShowComments] = useState(false)
-    const [showAuthority, setShowAuthority] = useState(false)
-    const [comment, setComment] = useState('')
-    const [authorityComment, setAuthorityComment] = useState('')
-    const [comments, setComments] = useState([])
-    const [authorityResponses, setAuthorityResponses] = useState([])
-    return (
-        <div className="bg-white rounded-lg shadow-sm p-6 space-y-4 w-full max-w-2xl">
+  if (!post) return null; // 🔥 prevent crash
 
-            {/* User Info */}
-            <div className="inline-flex items-center gap-3 cursor-pointer">
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(post.likes || 0);
 
-                <img
-                    src={post.user.profile_picture}
-                    alt=""
-                    className="w-10 h-10 rounded-full shadow"
-                />
+  const [showComments, setShowComments] = useState(false);
+  const [showResponse, setShowResponse] = useState(false);
 
-                <div>
+  const [commentInput, setCommentInput] = useState("");
+  const [responseInput, setResponseInput] = useState("");
 
-                    <div className="flex items-center space-x-1">
-                        <span className="text-[#212529] font-medium">{post.user.full_name}</span>
-                        <BadgeCheck className="w-4 h-4 text-[#1A4E8A]" />
-                    </div>
+  const [comments, setComments] = useState(post.comments || []);
+  const [responses, setResponses] = useState([]);
 
-                    <div className='text-[#6C757D] text-sm'>
-                        @{post.user.username} • {moment(post.createdAt).fromNow() }
-                    </div>
+  const handleLike = () => {
+    setLikes((prev) => (liked ? prev - 1 : prev + 1));
+    setLiked(!liked);
+  };
 
-                </div>
+  const handleAddComment = () => {
+    if (!commentInput.trim()) return;
+    setComments([...comments, { text: commentInput }]);
+    setCommentInput("");
+  };
 
-            </div>
+  const handleAddResponse = () => {
+    if (!responseInput.trim()) return;
+    setResponses([...responses, { text: responseInput }]);
+    setResponseInput("");
+  };
 
-            {/* Post Content */}
-            {post.content && <p className='text-[#212529]'>{post.content}</p>}
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-4 w-full relative space-y-3">
 
-            {/* Post Images */}
-            {post.image_urls?.length > 0 && (
-                <img src={post.image_urls[0]} alt='post' className='w-full rounded-lg' />
+      {/* 🔥 STATUS */}
+      {post.status && (
+        <span className={`absolute top-3 right-3 px-3 py-1 text-xs rounded-full ${
+          post.status.toLowerCase() === "solved"
+            ? "bg-green-100 text-green-700"
+            : post.status.toLowerCase() === "pending"
+            ? "bg-red-100 text-red-700"
+            : "bg-yellow-100 text-yellow-700"
+        }`}>
+          {post.status}
+        </span>
+      )}
+
+      {/* 🔹 USER */}
+      <div className="flex items-center gap-3">
+        <img
+          src={post?.user?.profile_picture || "https://via.placeholder.com/40"}
+          alt="user"
+          className="w-10 h-10 rounded-full"
+        />
+
+        <div>
+          <div className="flex items-center gap-1">
+            <span className="font-semibold">
+              {post?.user?.full_name || "User"}
+            </span>
+
+            {post?.isAuthority && (
+              <BadgeCheck className="w-4 h-4 text-blue-500" />
             )}
+          </div>
 
-            {/* Action Buttons */}
-            <div className='flex items-center justify-between pt-3 mt-3 border-t border-gray-200'>
-                <button className='flex items-center gap-2 text-[#6C757D] hover:text-[#DC3545] transition'>
-                    <Heart className='w-5 h-5' />
-                    <span className='text-sm'>{post.likes_count?.length || 0}</span>
-                </button>
-                <button className='flex items-center gap-2 text-[#6C757D] hover:text-[#28C76F] transition'>
-                    <Repeat2 className='w-5 h-5' />
-                </button>
-                <button onClick={() => setShowAuthority(!showAuthority)} className='group flex items-center gap-2 text-[#6C757D] hover:text-[#1A4E8A] transition'>
-                    <div className='flex items-center justify-center w-6 h-6 rounded-full bg-[#1A4E8A]/10 text-[#1A4E8A] group-hover:bg-[#1A4E8A] group-hover:text-white transition-all duration-300 font-bold text-xs group-hover:scale-110'>
-                        A
-                    </div>
-                    <span className='text-sm'>{authorityResponses.length}</span>
-                </button>
-                <button onClick={() => setShowComments(!showComments)} className='flex items-center gap-2 text-[#6C757D] hover:text-[#007BFF] transition'>
-                    <MessageCircle className='w-5 h-5' />
-                    <span className='text-sm'>{comments.length}</span>
-                </button>
-                <button className='flex items-center gap-2 text-[#6C757D] hover:text-[#212529] transition'>
-                    <Share2 className='w-5 h-5' />
-                </button>
-            </div>
-
-            {/* Comments Section */}
-            {showComments && (
-                <div className='border-t border-gray-200 pt-4 space-y-3'>
-                    <div className='flex gap-2'>
-                        <input
-                            type='text'
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
-                            placeholder='Write a comment...'
-                            className='flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#007BFF] text-sm'
-                        />
-                        <button
-                            onClick={() => {
-                                if (comment.trim()) {
-                                    setComments([...comments, { text: comment, time: new Date() }])
-                                    setComment('')
-                                }
-                            }}
-                            className='px-4 py-2 bg-[#007BFF] text-white rounded-lg hover:bg-[#0056b3] transition'
-                        >
-                            <Send className='w-4 h-4' />
-                        </button>
-                    </div>
-                    {comments.map((c, i) => (
-                        <div key={i} className='bg-[#F8F9FA] p-3 rounded-lg'>
-                            <p className='text-sm text-[#212529]'>{c.text}</p>
-                            <span className='text-xs text-[#6C757D]'>{moment(c.time).fromNow()}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Authority Response Section */}
-            {showAuthority && (
-                <div className='border-t border-gray-200 pt-4 space-y-3'>
-                    <div className='flex items-center gap-2 mb-2'>
-                        <div className='w-6 h-6 rounded-full bg-[#1A4E8A] text-white flex items-center justify-center font-bold text-xs'>
-                            A
-                        </div>
-                        <span className='text-sm font-medium text-[#1A4E8A]'>Authority Responses</span>
-                    </div>
-                    <div className='flex gap-2'>
-                        <input
-                            type='text'
-                            value={authorityComment}
-                            onChange={(e) => setAuthorityComment(e.target.value)}
-                            placeholder='Write an authority response...'
-                            className='flex-1 px-3 py-2 border border-[#1A4E8A] rounded-lg focus:outline-none focus:border-[#1A4E8A] text-sm'
-                        />
-                        <button
-                            onClick={() => {
-                                if (authorityComment.trim()) {
-                                    setAuthorityResponses([...authorityResponses, { text: authorityComment, time: new Date() }])
-                                    setAuthorityComment('')
-                                }
-                            }}
-                            className='px-4 py-2 bg-[#1A4E8A] text-white rounded-lg hover:bg-[#153d6f] transition'
-                        >
-                            <Send className='w-4 h-4' />
-                        </button>
-                    </div>
-                    {authorityResponses.map((r, i) => (
-                        <div key={i} className='bg-[#1A4E8A]/5 border border-[#1A4E8A]/20 p-3 rounded-lg'>
-                            <p className='text-sm text-[#212529]'>{r.text}</p>
-                            <span className='text-xs text-[#6C757D]'>{moment(r.time).fromNow()}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
-
+          <p className="text-xs text-gray-500">
+            {post?.createdAt
+              ? moment(post.createdAt).fromNow()
+              : "just now"}
+          </p>
         </div>
-    )
-}
+      </div>
 
-export default PostCard
+      {/* 🔥 AUTHORITY MENTION */}
+      {post?.authority && !post?.isAuthority && (
+        <div className="flex items-center gap-2 ml-12 bg-gray-50 p-2 rounded-lg">
+          <img
+            src={post?.authority?.profilePic || "https://via.placeholder.com/30"}
+            className="w-6 h-6 rounded-full"
+          />
+          <span className="text-sm text-gray-700">
+            Assigned to{" "}
+            <span className="font-semibold">
+              {post?.authority?.name || "Authority"}
+            </span>
+          </span>
+        </div>
+      )}
+
+      {/* 🔹 CONTENT */}
+      <p className="text-gray-800 text-sm">{post?.content}</p>
+
+      {/* 🔹 IMAGE */}
+      {post?.image_urls?.length > 0 && (
+        <img src={post.image_urls[0]} alt='post' className='w-full rounded-lg object-cover max-h-96' />
+      )}
+
+      {/* 🔹 ACTIONS */}
+      <div className="flex justify-between pt-2 border-t text-sm">
+
+        <button onClick={handleLike}>
+          👍 {likes}
+        </button>
+
+        <button onClick={() => setShowComments(!showComments)}>
+          💬 Comment
+        </button>
+
+        <button onClick={() => setShowResponse(!showResponse)}>
+          🏛️ Respond
+        </button>
+
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(window.location.href);
+            alert("Link copied!");
+          }}
+        >
+          🔗 Share
+        </button>
+
+      </div>
+
+      {/* 💬 COMMENTS */}
+      {showComments && (
+        <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+          {comments.map((c, i) => (
+            <p key={i}>{c.text}</p>
+          ))}
+
+          <div className="flex gap-2">
+            <input
+              value={commentInput}
+              onChange={(e) => setCommentInput(e.target.value)}
+              className="flex-1 border px-2 py-1 rounded"
+            />
+            <button onClick={handleAddComment}>Post</button>
+          </div>
+        </div>
+      )}
+
+      {/* 🏛️ RESPONSES */}
+      {showResponse && (
+        <div className="bg-green-50 p-3 rounded-lg space-y-2">
+          {responses.map((r, i) => (
+            <p key={i}>🏛️ {r.text}</p>
+          ))}
+
+          <div className="flex gap-2">
+            <input
+              value={responseInput}
+              onChange={(e) => setResponseInput(e.target.value)}
+              className="flex-1 border px-2 py-1 rounded"
+            />
+            <button onClick={handleAddResponse}>Respond</button>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+};
+
+export default PostCard;
