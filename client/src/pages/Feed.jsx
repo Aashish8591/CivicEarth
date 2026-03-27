@@ -54,40 +54,24 @@ const Feed = () => {
   }, []);
 
   return !loading ? (
-    <div className="w-full min-h-screen bg-gray-100 py-6">
+    <div className="w-full h-full bg-[#F8F9FA]">
+      <div className="max-w-6xl mx-auto px-4 flex gap-6 h-full">
 
-      <div className="max-w-6xl mx-auto px-4 flex gap-6">
-
-        {/* 🔹 Feed */}
-        <div className="flex-1 space-y-5">
-          <h2 className="text-lg font-semibold text-gray-700">
-            Community Feed
-          </h2>
-
+        {/* Feed */}
+        <div className="flex-1 overflow-y-auto py-6 space-y-5 no-scrollbar">
+          <h2 className="text-lg font-semibold text-[#212529]">Community Feed</h2>
           {feeds.map((post) => (
             <PostCard key={post._id} post={post} />
           ))}
         </div>
 
-        {/* 🔹 Sidebar */}
-        <div className="hidden xl:block w-80 space-y-4">
-
+        {/* Right Sidebar */}
+        <div className="hidden xl:block w-80 overflow-y-auto py-6 space-y-4 no-scrollbar">
           <div className="bg-white rounded-xl shadow-sm p-5">
-            <h2 className="font-semibold text-lg mb-3">
-              Sponsored
-            </h2>
-
-            <img
-              src={assets?.sponsored_img}
-              alt="sponsored"
-              className="rounded-lg mb-3"
-            />
-
-            <p className="text-sm text-gray-500">
-              Boost your community impact 🚀
-            </p>
+            <h2 className="font-semibold text-lg mb-3 text-[#212529]">Sponsored</h2>
+            <img src={assets?.sponsored_img} alt="sponsored" className="w-full rounded-lg mb-3" />
+            <p className="text-sm text-[#6C757D]">Boost your community impact 🚀</p>
           </div>
-
         </div>
 
       </div>

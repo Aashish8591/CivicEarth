@@ -10,6 +10,7 @@ import Discover from './pages/Discover'
 import CreatePost from './pages/CreatePost'
 import {useUser} from '@clerk/clerk-react'
 import Layout from './pages/Layout'
+import Report from './pages/Report'
 import {Toaster} from 'react-hot-toast'
 
 
@@ -30,6 +31,7 @@ const App = () => {
           <Route path='discover' element={<Discover />} />
           <Route path='profile/:profileId' element={<Profile />} />
           <Route path='create-post' element={<CreatePost />} />
+          <Route path='report' element={<Report />} />
 
 
 
