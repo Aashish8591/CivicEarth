@@ -3,10 +3,15 @@ import { BadgeCheck } from "lucide-react";
 import moment from "moment";
 
 const PostCard = ({ post }) => {
-  if (!post) return null; // 🔥 prevent crash
+  if (!post) return null;
 
+  // 🔥 LIKE STATE
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likes || 0);
+
+  // 🔥 REPOST STATE (NEW)
+  const [reposted, setReposted] = useState(false);
+  const [reposts, setReposts] = useState(post.reposts || 0);
 
   const [showComments, setShowComments] = useState(false);
   const [showResponse, setShowResponse] = useState(false);
@@ -17,9 +22,16 @@ const PostCard = ({ post }) => {
   const [comments, setComments] = useState(post.comments || []);
   const [responses, setResponses] = useState([]);
 
+  // 🔥 LIKE FUNCTION
   const handleLike = () => {
     setLikes((prev) => (liked ? prev - 1 : prev + 1));
     setLiked(!liked);
+  };
+
+  // 🔥 REPOST FUNCTION (NEW)
+  const handleRepost = () => {
+    setReposts((prev) => (reposted ? prev - 1 : prev + 1));
+    setReposted(!reposted);
   };
 
   const handleAddComment = () => {
@@ -83,6 +95,7 @@ const PostCard = ({ post }) => {
           <img
             src={post?.authority?.profilePic || "https://via.placeholder.com/30"}
             className="w-6 h-6 rounded-full"
+            alt="authority"
           />
           <span className="text-sm text-gray-700">
             Assigned to{" "}
@@ -98,7 +111,11 @@ const PostCard = ({ post }) => {
 
       {/* 🔹 IMAGE */}
       {post?.image_urls?.length > 0 && (
-        <img src={post.image_urls[0]} alt='post' className='w-full rounded-lg object-cover max-h-96' />
+        <img
+          src={post.image_urls[0]}
+          alt="post"
+          className="w-full rounded-lg object-cover max-h-96"
+        />
       )}
 
       {/* 🔹 ACTIONS */}
@@ -106,6 +123,11 @@ const PostCard = ({ post }) => {
 
         <button onClick={handleLike}>
           👍 {likes}
+        </button>
+
+        {/* 🔥 REPOST BUTTON (NEW) */}
+        <button onClick={handleRepost}>
+          🔁 {reposts}
         </button>
 
         <button onClick={() => setShowComments(!showComments)}>
