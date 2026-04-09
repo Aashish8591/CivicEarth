@@ -6,27 +6,47 @@ const Discover = () => {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
-  // 🔥 Dummy Data
+  // 🔥 PROPER POSTS DATA (MATCH PostCard)
   const posts = [
     {
-      _id: "1",
+      id: "1",
       user: {
-        name: "Sairaj",
-        profilePic: "https://i.pravatar.cc/150?img=3",
+        full_name: "Sairaj",
+        profile_picture: "https://i.pravatar.cc/150?img=3",
       },
       authority: {
         name: "Kalyan Municipal Corporation",
         profilePic: "https://i.pravatar.cc/150?img=12",
       },
-      content: "Road damage near station",
+      content: "Road damage near station 🚧",
       status: "Pending",
       createdAt: new Date(),
       likes: 10,
-      comments: [],
+      reposts: 2,
+      comments: [{ text: "Same issue here!" }],
+      image_urls: [
+        "https://images.unsplash.com/photo-1597764699510-7c8c1f2c4c6f",
+      ],
       isAuthority: false,
+    },
+    {
+      id: "2",
+      user: {
+        full_name: "Traffic Police",
+        profile_picture: "https://i.pravatar.cc/150?img=8",
+      },
+      content: "Traffic congestion resolved near signal 🚦",
+      status: "Solved",
+      createdAt: new Date(),
+      likes: 22,
+      reposts: 4,
+      comments: [],
+      image_urls: [],
+      isAuthority: true,
     },
   ];
 
+  // 🔥 AUTHORITIES
   const authorities = [
     {
       name: "Kalyan Municipal Corporation",
@@ -38,7 +58,7 @@ const Discover = () => {
     },
   ];
 
-  // 🔍 FILTER LOGIC
+  // 🔥 FILTER LOGIC
   const filteredPosts = posts.filter((p) =>
     p.content.toLowerCase().includes(query.toLowerCase())
   );
@@ -48,8 +68,7 @@ const Discover = () => {
   );
 
   return (
-    <div className="w-full min-h-screen bg-gray-100 py-6">
-
+    <div className="w-full bg-gray-100 py-6">
       <div className="max-w-4xl mx-auto px-4 space-y-5">
 
         {/* 🔍 SEARCH BAR */}
@@ -81,36 +100,47 @@ const Discover = () => {
           ))}
         </div>
 
-        {/* 🔥 RESULTS */}
-
-        {/* POSTS */}
+        {/* 🔥 POSTS */}
         {(activeTab === "all" || activeTab === "complaints") && (
           <div className="space-y-4">
-            {filteredPosts.map((post) => (
-              <PostCard key={post._id} post={post} />
-            ))}
+            {filteredPosts.length > 0 ? (
+              filteredPosts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))
+            ) : (
+              <p className="text-center text-gray-500">
+                No complaints found
+              </p>
+            )}
           </div>
         )}
 
-        {/* AUTHORITIES */}
+        {/* 🔥 AUTHORITIES */}
         {(activeTab === "all" || activeTab === "authorities") && (
           <div className="bg-white rounded-xl p-4 space-y-3">
             <h3 className="font-semibold text-gray-700">
               Authorities
             </h3>
 
-            {filteredAuthorities.map((auth, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer"
-              >
-                <img
-                  src={auth.profilePic}
-                  className="w-10 h-10 rounded-full"
-                />
-                <span className="font-medium">{auth.name}</span>
-              </div>
-            ))}
+            {filteredAuthorities.length > 0 ? (
+              filteredAuthorities.map((auth, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer"
+                >
+                  <img
+                    src={auth.profilePic}
+                    className="w-10 h-10 rounded-full"
+                    alt="authority"
+                  />
+                  <span className="font-medium">{auth.name}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">
+                No authorities found
+              </p>
+            )}
           </div>
         )}
 

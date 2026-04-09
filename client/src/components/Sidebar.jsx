@@ -1,43 +1,55 @@
-import { useNavigate } from 'react-router-dom'
-import React from 'react'
-import { assets, dummyUserData } from '../assets/assets'
-import MenuItems from './MenuItems'
-import { Link } from 'react-router-dom'
-import { CirclePlus, LogOut } from 'lucide-react'
-import { UserButton,useClerk } from '@clerk/clerk-react'
+import { Link, useLocation } from "react-router-dom";
+import { Home, Compass, MessageSquare, User, PlusCircle } from "lucide-react";
 
+const Sidebar = () => {
+  const location = useLocation();
 
-const Sidebar = ({sidebarOpen,setSidebarOpen}) => {
-const navigate = useNavigate()
-const user = dummyUserData
-const {signOut} = useClerk()
+  const menu = [
+    { name: "Home", path: "/", icon: <Home size={20} /> },
+    { name: "Discover", path: "/discover", icon: <Compass size={20} /> },
+    { name: "Messages", path: "/messages", icon: <MessageSquare size={20} /> },
+    { name: "Profile", path: "/profile", icon: <User size={20} /> },
+  ];
 
   return (
-    <div className={`w-60 xl:w-72 bg-white border-r border-gray-200 flex flex-col justify-between items-center max-sm:absolute top-0 bottom-0 z-20 ${sidebarOpen ? 'translate-x-0' : 'max-sm:-translate-x-full'} transition-all duration-300 ease-in-out`}>
-        <div className='w-full'>
-            <img onClick={() => navigate('/') } src={assets.civicEarthlogo} className='w-28 mx-auto my-2 cursor-pointer' alt="" />
-            <hr className='border-gray-300 mb-8' />
-            <MenuItems setSidebarOpen={setSidebarOpen} />
+    <div className="w-64 bg-white border-r p-5 flex flex-col h-screen sticky top-0">
 
-            <Link to="/create-post" className="flex items-center justify-center gap-2 py-2.5 mt-6 mx-6 rounded-lg bg-[#1A4E8A] hover:bg-[#153d6f] active:scale-95 transition text-white cursor-pointer font-medium">
-              <CirclePlus className="w-5 h-5" />
-              Create Post
+      <div className="flex flex-col h-full">
+
+        {/* MENU */}
+        <div className="space-y-3">
+          {menu.map((item) => (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`flex items-center gap-3 p-3 rounded-lg ${
+                location.pathname === item.path
+                  ? "bg-blue-100 text-blue-600"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              {item.icon}
+              {item.name}
             </Link>
+          ))}
         </div>
 
-        <div className='w-full border-t border-gray-200 p-4 px-7 flex items-center justify-between'>
-          <div className='flex gap-2 items-center cursor-pointer'>
-            <UserButton />
-            <div>
-              <h1 className='text-sm font-medium text-[#212529]'>{user.full_name}</h1>
-              <p className='text-xs text-[#6C757D]'>@{user.username}</p>
-            </div>
-          </div>
-          <LogOut onClick={signOut} className='w-4.5 text-[#6C757D] hover:text-[#212529] transition cursor-pointer'/>
-        </div>
+        {/* ✅ REPORT ISSUE BUTTON */}
+        <Link
+          to="/create-post"
+          className={`mt-85 flex items-center justify-center gap-2 p-3 rounded-full shadow-md transition ${
+            location.pathname === "/create-post"
+              ? "bg-blue-600 text-white"
+              : "bg-blue-500 text-white hover:scale-105"
+          }`}
+        >
+          <PlusCircle size={18} />
+          Report Issue
+        </Link>
 
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;

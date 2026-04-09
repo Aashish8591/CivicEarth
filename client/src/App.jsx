@@ -1,44 +1,60 @@
-import React from 'react'
-import { Route, Routes } from 'react-router-dom'
-import Login from './pages/Login'
-import Feed from './pages/Feed'
-import Messages from './pages/Messages'
-import ChatBox from './pages/ChatBox'
-import Trending from './pages/Trending'
-import Profile from './pages/Profile'
-import Discover from './pages/Discover'
-import CreatePost from './pages/CreatePost'
-import {useUser} from '@clerk/clerk-react'
-import Layout from './pages/Layout'
-import Report from './pages/Report'
-import {Toaster} from 'react-hot-toast'
+import React from "react";
+import { Route, Routes } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
+import Login from "./pages/LoginRegister";
+import Feed from "./pages/Feed";
+import UserProfile from "./pages/UserProfile";
+import UserLayout from "./components/UserLayout";
+import AuthorityLayout from "./components/AuthorityLayout";
+import Discover from "./pages/Discover";
+import CreatePost from "./pages/CreatePost";
+import Messages from "./pages/Messages";
+//import AuthorityDashboard from "./pages/AuthorityDashboard";
 
 const App = () => {
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
-  const {user} = useUser()
   return (
     <>
-
       <Toaster />
+
       <Routes>
-        <Route path='/' element={!user ? <Login /> : <Layout/>} >
-          <Route index element={<Feed />} />
-          <Route path='messages' element={<Messages />} />
-          <Route path='messages/:userId' element={<ChatBox />} />
-          <Route path='trending' element={<Trending />} />
-          <Route path='profile' element={<Profile />} />
-          <Route path='discover' element={<Discover />} />
-          <Route path='profile/:profileId' element={<Profile />} />
-          <Route path='create-post' element={<CreatePost />} />
-          <Route path='report' element={<Report />} />
+        <Route
+          path="/"
+          element={
+            !token ? (
+              <Login />
+            ) : role === "ADMIN" ? (
+              <AuthorityLayout />
+            ) : (
+              <UserLayout />
+            )
+          }
+        >
+          {/* USER ROUTES */}
+          {role !== "ADMIN" && (
+            <>
+              <Route index element={<Feed />} />
+              <Route path="profile" element={<UserProfile />} />
+              <Route path="discover" element={<Discover/>}/>
+              <Route path="messages" element={<Messages/>}/>
+              <Route path="/create-post" element={<CreatePost/>}/>
+            </>
+          )}
 
-
-
+          {/* ADMIN ROUTES */}
+          {role === "ADMIN" && (
+            <>
+              <Route index element={<AuthorityDashboard />} />
+              <Route path="admin" element={<AuthorityDashboard />} />
+            </>
+          )}
         </Route>
       </Routes>
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;
