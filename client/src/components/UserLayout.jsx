@@ -4,16 +4,24 @@ import Topbar from "./Topbar";
 
 const UserLayout = () => {
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      <Topbar />
+    <div className="h-screen flex">
 
-      <div className="flex flex-1 overflow-hidden">
+      {/* 🔥 SIDEBAR */}
+      <div className="w-64 border-r border-white/20 bg-white/40 backdrop-blur-xl">
         <Sidebar />
+      </div>
 
-        {/* SCROLL ONLY CONTENT */}
+      {/* 🔥 MAIN AREA */}
+      <div className="flex-1 flex flex-col">
+
+        {/* TOPBAR */}
+        <Topbar />
+
+        {/* CONTENT */}
         <div className="flex-1 p-6 overflow-y-auto">
           <Outlet />
         </div>
+
       </div>
     </div>
   );

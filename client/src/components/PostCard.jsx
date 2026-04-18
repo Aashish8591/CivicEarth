@@ -1,190 +1,204 @@
-import React, { useState } from "react";
-import { BadgeCheck } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Heart, MessageCircle, BadgeCheck } from "lucide-react";
 import moment from "moment";
+import API from "../api";
 
 const PostCard = ({ post }) => {
   if (!post) return null;
 
-  // 🔥 LIKE STATE
-  const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(post.likes || 0);
+  const currentUser = JSON.parse(localStorage.getItem("user"));
 
-  // 🔥 REPOST STATE (NEW)
-  const [reposted, setReposted] = useState(false);
-  const [reposts, setReposts] = useState(post.reposts || 0);
+  const userName =
+    post?.user?.full_name || currentUser?.fullName || "User";
 
-  const [showComments, setShowComments] = useState(false);
-  const [showResponse, setShowResponse] = useState(false);
+  const userImage =
+    post?.user?.profile_picture ||
+    currentUser?.profilePic ||
+    "";
 
-  const [commentInput, setCommentInput] = useState("");
-  const [responseInput, setResponseInput] = useState("");
-
+  const [likes, setLikes] = useState(post.likes?.length || 0);
   const [comments, setComments] = useState(post.comments || []);
-  const [responses, setResponses] = useState([]);
+  const [commentInput, setCommentInput] = useState("");
+  const [showComments, setShowComments] = useState(false);
 
-  // 🔥 LIKE FUNCTION
-  const handleLike = () => {
-    setLikes((prev) => (liked ? prev - 1 : prev + 1));
-    setLiked(!liked);
+  const createdTime = post?.createdAt || post?.created_at;
+
+  const getTimeAgo = (date) => {
+    if (!date) return "now";
+
+    const now = moment();
+    const created = moment(date);
+
+    const seconds = now.diff(created, "seconds");
+    const minutes = now.diff(created, "minutes");
+    const hours = now.diff(created, "hours");
+    const days = now.diff(created, "days");
+
+    if (seconds < 10) return "now";
+    if (seconds < 60) return `${seconds}s`;
+    if (minutes < 60) return `${minutes}m`;
+    if (hours < 24) return `${hours}h`;
+    return `${days}d`;
   };
 
-  // 🔥 REPOST FUNCTION (NEW)
-  const handleRepost = () => {
-    setReposts((prev) => (reposted ? prev - 1 : prev + 1));
-    setReposted(!reposted);
+  const [timeAgo, setTimeAgo] = useState(
+    createdTime ? getTimeAgo(createdTime) : "now"
+  );
+
+  useEffect(() => {
+    if (!createdTime) return;
+
+    const interval = setInterval(() => {
+      setTimeAgo(getTimeAgo(createdTime));
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [createdTime]);
+
+  // ✅ FIXED ID + LIKE LOGIC
+  const handleLike = async () => {
+    try {
+      await API.post(`/posts/${post.id}/like?userId=${currentUser.id}`);
+
+      // toggle like count properly
+      if (post.likes?.includes(currentUser.id)) {
+        setLikes((prev) => prev - 1);
+      } else {
+        setLikes((prev) => prev + 1);
+      }
+    } catch (err) {
+      console.log(err);
+    }
   };
 
-  const handleAddComment = () => {
+  // ✅ FIXED COMMENT API
+  const handleAddComment = async () => {
     if (!commentInput.trim()) return;
-    setComments([...comments, { text: commentInput }]);
-    setCommentInput("");
-  };
 
-  const handleAddResponse = () => {
-    if (!responseInput.trim()) return;
-    setResponses([...responses, { text: responseInput }]);
-    setResponseInput("");
+    try {
+      await API.post(
+        `/posts/${post.id}/comment?text=${commentInput}`
+      );
+
+      setComments([...comments, { text: commentInput }]);
+      setCommentInput("");
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 w-full relative space-y-3">
+    <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
 
-      {/* 🔥 STATUS */}
-      {post.status && (
-        <span className={`absolute top-3 right-3 px-3 py-1 text-xs rounded-full ${
-          post.status.toLowerCase() === "solved"
-            ? "bg-green-100 text-green-700"
-            : post.status.toLowerCase() === "pending"
-            ? "bg-red-100 text-red-700"
-            : "bg-yellow-100 text-yellow-700"
-        }`}>
-          {post.status}
-        </span>
-      )}
+      {/* 🔥 USER HEADER */}
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-3">
+          {userImage ? (
+            <img
+              src={userImage}
+              className="w-10 h-10 rounded-full object-cover"
+              alt=""
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gray-200" />
+          )}
 
-      {/* 🔹 USER */}
-      <div className="flex items-center gap-3">
-        <img
-          src={post?.user?.profile_picture || "https://via.placeholder.com/40"}
-          alt="user"
-          className="w-10 h-10 rounded-full"
-        />
+          <div>
+            <div className="flex items-center gap-1">
+              <span className="font-semibold text-gray-800">
+                {userName}
+              </span>
 
-        <div>
-          <div className="flex items-center gap-1">
-            <span className="font-semibold">
-              {post?.user?.full_name || "User"}
-            </span>
+              {post?.isAuthority && (
+                <BadgeCheck className="w-4 h-4 text-blue-500" />
+              )}
+            </div>
 
-            {post?.isAuthority && (
-              <BadgeCheck className="w-4 h-4 text-blue-500" />
-            )}
+            <p className="text-xs text-gray-500">{timeAgo}</p>
           </div>
-
-          <p className="text-xs text-gray-500">
-            {post?.createdAt
-              ? moment(post.createdAt).fromNow()
-              : "just now"}
-          </p>
         </div>
       </div>
 
-      {/* 🔥 AUTHORITY MENTION */}
-      {post?.authority && !post?.isAuthority && (
-        <div className="flex items-center gap-2 ml-12 bg-gray-50 p-2 rounded-lg">
-          <img
-            src={post?.authority?.profilePic || "https://via.placeholder.com/30"}
-            className="w-6 h-6 rounded-full"
-            alt="authority"
-          />
-          <span className="text-sm text-gray-700">
-            Assigned to{" "}
-            <span className="font-semibold">
-              {post?.authority?.name || "Authority"}
-            </span>
-          </span>
-        </div>
-      )}
-
-      {/* 🔹 CONTENT */}
-      <p className="text-gray-800 text-sm">{post?.content}</p>
-
-      {/* 🔹 IMAGE */}
-      {post?.image_urls?.length > 0 && (
+      {/* 🔥 IMAGE */}
+      {(post?.imageUrl || post?.image_urls?.length > 0) && (
         <img
-          src={post.image_urls[0]}
-          alt="post"
-          className="w-full rounded-lg object-cover max-h-96"
+          src={post.imageUrl || post.image_urls[0]}
+          className="w-full max-h-[400px] object-cover rounded-xl px-4"
+          alt=""
         />
       )}
 
-      {/* 🔹 ACTIONS */}
-      <div className="flex justify-between pt-2 border-t text-sm">
+      {/* 🔥 CONTENT */}
+      <div className="px-4 pt-3 text-gray-800 text-sm">
+        {post?.content}
+      </div>
 
-        <button onClick={handleLike}>
-          👍 {likes}
-        </button>
+      {/* 🔥 NEW: LOCATION + CATEGORY */}
+      <div className="px-4 mt-2 flex gap-3 text-xs text-gray-500">
 
-        {/* 🔥 REPOST BUTTON (NEW) */}
-        <button onClick={handleRepost}>
-          🔁 {reposts}
-        </button>
+        {/* 📍 LOCATION */}
+        {post?.location && (
+          <span className="flex items-center gap-1 text-blue-600 font-medium">
+            📍 {post.location}
+          </span>
+        )}
 
-        <button onClick={() => setShowComments(!showComments)}>
-          💬 Comment
-        </button>
-
-        <button onClick={() => setShowResponse(!showResponse)}>
-          🏛️ Respond
-        </button>
-
-        <button
-          onClick={() => {
-            navigator.clipboard.writeText(window.location.href);
-            alert("Link copied!");
-          }}
-        >
-          🔗 Share
-        </button>
+        {/* 🏷 CATEGORY */}
+        {post?.category && (
+          <span className="bg-gray-200 px-2 py-1 rounded-full">
+            #{post.category}
+          </span>
+        )}
 
       </div>
 
-      {/* 💬 COMMENTS */}
+      {/* 🔥 ACTIONS */}
+      <div className="flex items-center justify-between px-4 py-3 text-sm">
+        <div className="flex items-center gap-5">
+
+          <button
+            onClick={handleLike}
+            className="flex items-center gap-1 hover:text-red-500 transition"
+          >
+            <Heart size={18} />
+            {likes}
+          </button>
+
+          <button
+            onClick={() => setShowComments(!showComments)}
+            className="flex items-center gap-1 hover:text-blue-500 transition"
+          >
+            <MessageCircle size={18} />
+            {comments.length}
+          </button>
+        </div>
+      </div>
+
+      {/* 🔥 COMMENTS */}
       {showComments && (
-        <div className="bg-gray-50 p-3 rounded-lg space-y-2">
+        <div className="px-4 pb-4 space-y-2">
           {comments.map((c, i) => (
-            <p key={i}>{c.text}</p>
+            <p key={i} className="text-sm text-gray-700">
+              {c.text}
+            </p>
           ))}
 
           <div className="flex gap-2">
             <input
               value={commentInput}
               onChange={(e) => setCommentInput(e.target.value)}
-              className="flex-1 border px-2 py-1 rounded"
+              placeholder="Write a comment..."
+              className="flex-1 border rounded-full px-3 py-1 text-sm outline-none"
             />
-            <button onClick={handleAddComment}>Post</button>
+            <button
+              onClick={handleAddComment}
+              className="text-blue-500 text-sm font-medium"
+            >
+              Post
+            </button>
           </div>
         </div>
       )}
-
-      {/* 🏛️ RESPONSES */}
-      {showResponse && (
-        <div className="bg-green-50 p-3 rounded-lg space-y-2">
-          {responses.map((r, i) => (
-            <p key={i}>🏛️ {r.text}</p>
-          ))}
-
-          <div className="flex gap-2">
-            <input
-              value={responseInput}
-              onChange={(e) => setResponseInput(e.target.value)}
-              className="flex-1 border px-2 py-1 rounded"
-            />
-            <button onClick={handleAddResponse}>Respond</button>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 };

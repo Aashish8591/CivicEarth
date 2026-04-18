@@ -1,13 +1,25 @@
 import React, { useState } from "react";
-import { Image, AtSign, Send, X } from "lucide-react";
+import { Image, AtSign, Send, X, MapPin, Tag } from "lucide-react";
+import API from "../api";
 
 const CreatePost = ({ onPost }) => {
   const [content, setContent] = useState("");
   const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+
+  const [location, setLocation] = useState("");
+  const [category, setCategory] = useState("");
+
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
+
+  const [loading, setLoading] = useState(false); // 🔥 NEW
 
   const [showMention, setShowMention] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedAuthority, setSelectedAuthority] = useState(null);
+
+  const categories = ["Roads", "Water", "Drainage", "Garbage", "Electricity"];
 
   const authorities = [
     { name: "Kalyan Municipal Corporation", profilePic: "https://i.pravatar.cc/150?img=12" },
@@ -26,152 +38,223 @@ const CreatePost = ({ onPost }) => {
     setQuery("");
   };
 
-  const handleSubmit = () => {
+  // 📍 LOCATION
+  const getLocation = async () => {
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const latitude = pos.coords.latitude;
+        const longitude = pos.coords.longitude;
+
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+        );
+
+        const data = await res.json();
+
+        setLocation(data.display_name);
+        setLat(latitude);
+        setLng(longitude);
+      },
+      (err) => {
+        console.log(err);
+        alert("Enable location access");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  // 🔥 SUBMIT
+  const handleSubmit = async () => {
     if (!content.trim()) return;
 
-    const newPost = {
-      _id: Date.now().toString(),
-      user: {
-        name: "Sairaj Vichare",
-        profilePic: "https://i.pravatar.cc/150?img=3",
-      },
-      authority: selectedAuthority,
-      content,
-      image,
-      status: "Pending",
-      createdAt: new Date(),
-      likes: 0,
-      comments: [],
-      isAuthority: false,
-    };
+    setLoading(true); // 🔥 START LOADING
 
-    onPost(newPost);
+    try {
+      let imageUrl = "";
 
-    setContent("");
-    setImage(null);
-    setSelectedAuthority(null);
+      // 🔥 IMAGE UPLOAD (MAIN DELAY)
+      if (imageFile) {
+        const data = new FormData();
+        data.append("file", imageFile);
+        data.append("upload_preset", "civic_upload");
+
+        const res = await fetch(
+          "https://api.cloudinary.com/v1_1/dbrvcsgzq/image/upload",
+          {
+            method: "POST",
+            body: data,
+          }
+        );
+
+        const result = await res.json();
+        imageUrl = result.secure_url;
+      }
+
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      await API.post("/posts", {
+        userId: user._id || user.id,
+        content,
+        imageUrl,
+        authorityName: selectedAuthority?.name || "",
+        location,
+        category,
+        latitude: lat,
+        longitude: lng,
+      });
+
+      // 🔥 UPDATE UI
+      if (onPost) onPost();
+
+      // 🔄 RESET
+      setContent("");
+      setImage(null);
+      setImageFile(null);
+      setSelectedAuthority(null);
+      setLocation("");
+      setCategory("");
+      setLat(null);
+      setLng(null);
+
+    } catch (err) {
+      console.log(err);
+    }
+
+    setLoading(false); // 🔥 END LOADING
   };
 
   return (
     <div className="w-full max-w-3xl mx-auto">
+      <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 space-y-5 border">
 
-      <div className="bg-white rounded-2xl shadow-md p-6 space-y-5 border">
-
-        {/* 🔥 USER */}
+        {/* USER */}
         <div className="flex items-center gap-3">
-          <img
-            src="https://i.pravatar.cc/150?img=3"
-            className="w-11 h-11 rounded-full shadow"
-          />
-          <span className="font-semibold text-gray-800">
-            Sairaj Vichare
-          </span>
+          <img src="https://i.pravatar.cc/150?img=3" className="w-11 h-11 rounded-full shadow" />
+          <span className="font-semibold text-gray-800">User</span>
         </div>
 
-        {/* 🔥 TEXTAREA */}
+        {/* TEXT */}
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="What's happening in your area? Report issue..."
-          className="w-full bg-gray-50 border rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[100px]"
+          placeholder="Report issue in your area..."
+          className="w-full bg-gray-50 border rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-blue-500"
         />
 
-        {/* 🔥 SELECTED AUTHORITY */}
-        {selectedAuthority && (
-          <div className="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg text-sm w-fit">
-            <img src={selectedAuthority.profilePic} className="w-5 h-5 rounded-full" />
-            <span>{selectedAuthority.name}</span>
-          </div>
-        )}
+        {/* LOCATION + CATEGORY */}
+        <div className="flex gap-3">
 
-        {/* 🔥 MENTION BUTTON */}
-        {!showMention && !selectedAuthority && (
+          {/* LOCATION */}
+          <div
+            onClick={getLocation}
+            className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full text-sm cursor-pointer"
+          >
+            <MapPin size={16} />
+            <span className="truncate max-w-[200px]">
+              {location || "Add Location"}
+            </span>
+          </div>
+
+          {/* CATEGORY */}
+          <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full text-sm">
+            <Tag size={16} />
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="bg-transparent outline-none"
+            >
+              <option value="">Category</option>
+              {categories.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+
+        </div>
+
+        {/* AUTHORITY */}
+        {!selectedAuthority && (
           <button
             onClick={() => setShowMention(true)}
-            className="text-sm text-blue-600 flex items-center gap-1 hover:underline"
+            className="text-sm text-blue-600 flex items-center gap-1"
           >
             <AtSign size={16} />
             Mention authority
           </button>
         )}
 
-        {/* 🔥 MENTION DROPDOWN */}
         {showMention && (
-          <div className="border rounded-xl p-3 bg-gray-50 space-y-2">
-
+          <div className="border rounded-xl p-3 bg-gray-50">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search authority..."
-              className="w-full border px-3 py-2 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full border px-3 py-2 rounded-lg text-sm"
             />
 
-            <div className="max-h-40 overflow-y-auto space-y-1">
-              {filtered.map((auth, i) => (
-                <div
-                  key={i}
-                  onClick={() => handleSelect(auth)}
-                  className="flex items-center gap-2 p-2 hover:bg-gray-200 cursor-pointer rounded-lg transition"
-                >
-                  <img src={auth.profilePic} className="w-7 h-7 rounded-full" />
-                  <span className="text-sm">{auth.name}</span>
-                </div>
-              ))}
-            </div>
+            {filtered.map((auth, i) => (
+              <div
+                key={i}
+                onClick={() => handleSelect(auth)}
+                className="p-2 hover:bg-gray-200 cursor-pointer rounded-lg"
+              >
+                {auth.name}
+              </div>
+            ))}
           </div>
         )}
 
-        {/* 🔥 IMAGE PREVIEW */}
+        {/* IMAGE */}
         {image && (
           <div className="relative">
-            <img
-              src={image}
-              className="w-full max-h-60 object-cover rounded-xl"
-            />
+            <img src={image} className="w-full rounded-xl" />
             <button
-              onClick={() => setImage(null)}
-              className="absolute top-2 right-2 bg-black/60 text-white p-1 rounded-full"
+              onClick={() => {
+                setImage(null);
+                setImageFile(null);
+              }}
+              className="absolute top-2 right-2 bg-black text-white p-1 rounded-full"
             >
               <X size={14} />
             </button>
           </div>
         )}
 
-        {/* 🔥 ACTION BAR */}
-        <div className="flex items-center justify-between border-t pt-4">
+        {/* ACTION */}
+        <div className="flex justify-between border-t pt-4">
 
-          {/* LEFT */}
-          <div className="flex items-center gap-5 text-gray-600">
+          <label className="cursor-pointer flex items-center gap-1">
+            <Image size={18} />
+            <input
+              type="file"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                setImage(URL.createObjectURL(file));
+                setImageFile(file);
+              }}
+            />
+          </label>
 
-            <label className="cursor-pointer hover:text-blue-600 flex items-center gap-1">
-              <Image size={18} />
-              <input
-                type="file"
-                className="hidden"
-                onChange={(e) =>
-                  setImage(URL.createObjectURL(e.target.files[0]))
-                }
-              />
-            </label>
-
-          </div>
-
-          {/* RIGHT */}
+          {/* 🔥 BUTTON FIX */}
           <button
             onClick={handleSubmit}
-            disabled={!content.trim()}
-            className={`px-5 py-2 rounded-full flex items-center gap-2 transition ${
-              content.trim()
-                ? "bg-blue-600 text-white hover:bg-blue-700"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
+            disabled={loading}
+            className="bg-blue-600 text-white px-5 py-2 rounded-full flex items-center gap-2"
           >
-            <Send size={16} />
-            Post
+            {loading ? "Posting..." : (
+              <>
+                <Send size={16} />
+                Post
+              </>
+            )}
           </button>
 
         </div>
-
       </div>
     </div>
   );

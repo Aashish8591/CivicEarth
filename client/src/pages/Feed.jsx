@@ -1,105 +1,175 @@
 import React, { useEffect, useState } from "react";
-import { assets } from "../assets/assets";
 import Loading from "../components/Loading";
 import PostCard from "../components/PostCard";
+import API from "../api";
+import { SlidersHorizontal } from "lucide-react";
 
 const Feed = () => {
   const [feeds, setFeeds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("latest");
+  const [showFilter, setShowFilter] = useState(false);
 
-  useEffect(() => {
+  // 🔥 FETCH POSTS BASED ON FILTER
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
 
-    // 🔥 PROPER DUMMY DATA (MATCHES PostCard)
-    const dummyFeeds = [
-      {
-        id: "101",
+      let url = "/posts";
+
+      if (filter === "trending" || filter === "likes") {
+        url = "/posts?sort=likes";
+      } else if (filter === "nearby") {
+        url = "/posts?location=mumbai"; // later dynamic
+      }
+
+      const res = await API.get(url);
+
+      // ✅ FIXED: REMOVE DUMMY DATA
+      const formattedPosts = await Promise.all(
+  res.data.map(async (post) => {
+    try {
+      const userRes = await API.get(`/users/${post.userId}`);
+
+      return {
+        id: post.id,
+
+        // ✅ REAL USER FROM BACKEND
         user: {
-          full_name: "Sairaj Vichare",
-          profile_picture: "https://i.pravatar.cc/150?img=3",
+          fullName: userRes.data.fullName,
+          profilePic: userRes.data.profilePic,
         },
-        authority: {
-          name: "Kalyan Municipal Corporation",
-          profilePic: "https://i.pravatar.cc/150?img=12",
-        },
-        content:
-          "There is a huge pothole near Kalyan station causing traffic issues daily. Please fix it.",
-        status: "Pending",
-        createdAt: new Date(),
-        likes: 14,
-        reposts: 2,
-        comments: [
-          { text: "Facing same issue!" },
-          { text: "Please fix soon 🙏" },
-        ],
-        image_urls: [
-          "https://images.unsplash.com/photo-1597764699510-7c8c1f2c4c6f"
-        ],
-        isAuthority: false,
-      },
-      {
-        id: "102",
-        user: {
-          full_name: "Kalyan Municipal Corporation",
-          profile_picture: "https://i.pravatar.cc/150?img=12",
-        },
-        content:
-          "The pothole near Kalyan station has been repaired successfully.",
-        status: "Solved",
-        createdAt: new Date(),
-        likes: 40,
-        reposts: 5,
-        comments: [],
-        image_urls: [],
-        isAuthority: true,
-      },
-    ];
 
-    // 🔥 Simulate API delay (real feel)
-    setTimeout(() => {
-      setFeeds(dummyFeeds);
+        content: post.content,
+        createdAt: post.createdAt,
+        imageUrl: post.imageUrl,
+
+        location: post.location,
+        category: post.category,
+
+        latitude: post.latitude,
+        longitude: post.longitude,
+
+        likes: post.likes || [],
+        comments: post.comments || [],
+      };
+    } catch (err) {
+      console.log("User fetch error", err);
+
+      return {
+        ...post,
+        user: {
+          fullName: "Unknown",
+          profilePic: "",
+        },
+      };
+    }
+  })
+);
+      setFeeds(formattedPosts);
+    } catch (err) {
+      console.log("Error fetching posts:", err);
+    } finally {
       setLoading(false);
-    }, 800);
+    }
+  };
 
-  }, []);
+  // 🔥 RUN WHEN FILTER CHANGES
+  useEffect(() => {
+    fetchPosts();
+  }, [filter]);
 
   return !loading ? (
-    <div className="w-full h-full bg-[#F8F9FA]">
-      <div className="max-w-6xl mx-auto px-4 flex gap-6 h-full">
+    <div className="w-full h-full bg-transparent">
+      
+      {/* 🔥 MAIN CONTAINER */}
+      <div className="w-full max-w-5xl mx-auto px-5 py-4">
 
-        {/* 🔥 FEED */}
-        <div className="flex-1 overflow-y-auto py-6 space-y-5 no-scrollbar">
-          <h2 className="text-lg font-semibold text-[#212529]">
-            Community Feed
-          </h2>
+        {/* 🔥 HEADER */}
+        <div className="flex items-center justify-between mb-6">
 
+          <h1 className="text-2xl font-bold text-gray-800">
+            Feed
+          </h1>
+
+          <div className="relative">
+
+            <button
+              onClick={() => setShowFilter(!showFilter)}
+              className="flex items-center gap-2 px-4 py-2 bg-white/70 backdrop-blur-md border rounded-xl shadow-sm hover:shadow-md transition"
+            >
+              <SlidersHorizontal size={16} />
+              <span className="text-sm font-medium capitalize">
+                {filter}
+              </span>
+            </button>
+
+            {/* 🔥 DROPDOWN */}
+            {showFilter && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border p-2 z-50">
+
+                <button
+                  onClick={() => {
+                    setFilter("latest");
+                    setShowFilter(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 text-sm"
+                >
+                  Latest
+                </button>
+
+                <button
+                  onClick={() => {
+                    setFilter("trending");
+                    setShowFilter(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 text-sm"
+                >
+                  Trending 🔥
+                </button>
+
+                <button
+                  onClick={() => {
+                    setFilter("nearby");
+                    setShowFilter(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 text-sm"
+                >
+                  Nearby 📍
+                </button>
+
+                <button
+                  onClick={() => {
+                    setFilter("likes");
+                    setShowFilter(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 text-sm"
+                >
+                  Most Liked ❤️
+                </button>
+
+              </div>
+            )}
+
+          </div>
+        </div>
+
+        {/* 🔥 POSTS */}
+        <div className="space-y-6">
           {feeds.length > 0 ? (
             feeds.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <div
+                key={post.id}
+                className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300"
+              >
+                <PostCard post={post} />
+              </div>
             ))
           ) : (
             <p className="text-gray-500 text-center mt-10">
-              No posts available
+              No posts available 🚀
             </p>
           )}
-        </div>
-
-        {/* 🔥 RIGHT SIDEBAR */}
-        <div className="hidden xl:block w-80 overflow-y-auto py-6 space-y-4 no-scrollbar">
-          <div className="bg-white rounded-xl shadow-sm p-5">
-            <h2 className="font-semibold text-lg mb-3 text-[#212529]">
-              Sponsored
-            </h2>
-
-            <img
-              src={assets?.sponsored_img}
-              alt="sponsored"
-              className="w-full rounded-lg mb-3"
-            />
-
-            <p className="text-sm text-[#6C757D]">
-              Boost your community impact 🚀
-            </p>
-          </div>
         </div>
 
       </div>

@@ -13,6 +13,27 @@
   --civic-text-secondary: #6C757D;
 }
 
-*{
+/* 🔥 GLOBAL FONT */
+* {
   font-family: "Inter", sans-serif;
+}
+
+/* 🔥 PREMIUM BACKGROUND (MAIN PART) */
+body {
+  background: radial-gradient(
+      circle at 20% 20%,
+      #e0e7ff,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 0%,
+      #fce7f3,
+      transparent 40%
+    ),
+    #f8fafc;
+}
+
+/* 🔥 SMOOTH TEXT */
+body {
+  color: var(--civic-text-primary);
 }

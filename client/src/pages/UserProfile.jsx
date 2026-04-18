@@ -1,107 +1,84 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import API from "../api";
 import PostCard from "../components/PostCard";
-import UserImage from "../assets/sample_cover.jpg";
 import EditProfileModal from "../components/EditProfileModal";
+import { MapPin, CalendarDays } from "lucide-react";
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("posts");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [posts, setPosts] = useState([]);
 
-  const user = {
-    name: "Sairaj boltey hamko",
-    username: "@raj_civic",
-    bio: "Community advocate and environmental enthusiast. Making our city better one report at a time.",
-    location: "kalyan, thane",
-    website: "civicearth.org",
-    joined: "March 2023",
-    followers: 142,
-    following: 89,
-    issuesResolved: 18,
-    profilePic: UserImage,
+  // ✅ USE id (NOT _id)
+  useEffect(() => {
+    const localUser = JSON.parse(localStorage.getItem("user"));
+
+    API.get(`/users/${localUser.id}`)
+      .then((res) => setUser(res.data))
+      .catch((err) => console.log(err));
+  }, []);
+
+  // ✅ USE id (NOT _id)
+  useEffect(() => {
+    const localUser = JSON.parse(localStorage.getItem("user"));
+
+    API.get(`/posts/user/${localUser.id}`)
+      .then((res) => setPosts(res.data))
+      .catch((err) => console.log(err));
+  }, []);
+
+  // 🔥 IMAGE UPLOAD
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setPreview(URL.createObjectURL(file));
+
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", "civic_upload");
+
+    try {
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/dbrvcsgzq/image/upload",
+        {
+          method: "POST",
+          body: data,
+        },
+      );
+
+      const result = await res.json();
+
+      const localUser = JSON.parse(localStorage.getItem("user"));
+
+      await API.put(`/users/${localUser.id}`, {
+        profilePic: result.secure_url,
+      });
+
+      // ✅ FIX: merge user (IMPORTANT)
+      const updatedUser = {
+        ...localUser,
+        profilePic: result.secure_url,
+      };
+
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      // 🔥 notify Topbar
+      window.dispatchEvent(new Event("userUpdated"));
+
+      setUser(updatedUser);
+      setPreview(null);
+    } catch (err) {
+      console.log(err);
+      alert("Image upload failed ❌");
+    }
   };
 
-  // 🔥 DUMMY POSTS
-  const posts = [
-    {
-      id: 1,
-      content: "Cleaned the park today 🌱",
-      createdAt: new Date(),
-      likes: 12,
-      reposts: 3,
-      status: "Solved",
-      user: {
-        full_name: "Sairaj",
-        profile_picture: UserImage,
-      },
-      comments: [{ text: "Great work!" }],
-    },
-    {
-      id: 2,
-      content: "Reported a road issue 🚧",
-      createdAt: new Date(),
-      likes: 8,
-      reposts: 1,
-      status: "Pending",
-      user: {
-        full_name: "Sairaj",
-        profile_picture: UserImage,
-      },
-    },
-  ];
+  const replies = [];
+  const likes = [];
 
-  // 🔥 DUMMY REPLIES
-  const replies = [
-    {
-      id: 3,
-      content: "Thanks for reporting this issue 👍",
-      createdAt: new Date(),
-      likes: 5,
-      reposts: 0,
-      user: {
-        full_name: "Sairaj",
-        profile_picture: UserImage,
-      },
-    },
-    {
-      id: 4,
-      content: "We are working on this problem 🚀",
-      createdAt: new Date(),
-      likes: 3,
-      reposts: 0,
-      user: {
-        full_name: "Sairaj",
-        profile_picture: UserImage,
-      },
-    },
-  ];
-
-  // 🔥 DUMMY LIKES
-  const likes = [
-    {
-      id: 5,
-      content: "Amazing initiative by community 👏",
-      createdAt: new Date(),
-      likes: 20,
-      reposts: 2,
-      user: {
-        full_name: "Other User",
-        profile_picture: UserImage,
-      },
-    },
-    {
-      id: 6,
-      content: "Road fixed quickly 🔥",
-      createdAt: new Date(),
-      likes: 15,
-      reposts: 1,
-      user: {
-        full_name: "Another User",
-        profile_picture: UserImage,
-      },
-    },
-  ];
-
-  // 🔥 RENDER FUNCTION
   const renderContent = () => {
     let data = [];
 
@@ -109,104 +86,128 @@ const UserProfile = () => {
     if (activeTab === "replies") data = replies;
     if (activeTab === "likes") data = likes;
 
-    return data.map((post) => (
-      <PostCard key={post.id} post={post} />
-    ));
+    return data.map((post) => <PostCard key={post.id} post={post} />);
   };
 
   return (
-    <div className="w-full bg-gray-100 min-h-screen">
-      <div className="max-w-5xl mx-auto bg-white shadow-sm rounded-xl overflow-hidden">
+    <div className="w-full max-w-6xl mx-auto px-6 py-6">
+      {/* 🔥 SPACE */}
+      <div className="h-16" />
 
-        {/* 🔥 COVER */}
-        <div className="h-48 bg-gradient-to-r from-blue-500 via-blue-400 to-cyan-400 relative">
-          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-        </div>
+      {/* 🔥 PROFILE CARD */}
+      <div className="bg-white rounded-2xl shadow-xl p-6 relative">
+        <div className="flex justify-between items-start">
+          {/* LEFT */}
+          <div className="flex gap-6 items-start">
+            {/* 🔥 FLOATING IMAGE */}
+            <label className="cursor-pointer">
+              <div className="relative -mt-16">
+                {preview || user?.profilePic ? (
+                  <img
+                    src={preview || user?.profilePic}
+                    className="w-28 h-28 rounded-2xl object-cover shadow-lg border-4 border-white"
+                  />
+                ) : (
+                  <div className="w-28 h-28 bg-gray-200 rounded-2xl flex items-center justify-center border-4 border-white">
+                    No Image
+                  </div>
+                )}
 
-        {/* 🔥 PROFILE */}
-        <div className="px-6 pb-6 relative">
-          <img
-            src={user.profilePic}
-            className="w-35 h-35 rounded-full border-4 border-white absolute -top-36 left-6 object-cover shadow-lg"
-            alt="profile"
-          />
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+              </div>
+            </label>
 
-          {/* TOP */}
-          <div className="mt-20 flex justify-between items-start">
-            <div>
+            {/* USER INFO */}
+            <div className="mt-2">
               <h1 className="text-2xl font-bold text-gray-800">
-                {user.name}
+                {user?.fullName}
               </h1>
-              <p className="text-gray-500">{user.username}</p>
-            </div>
 
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-5 py-2 rounded-full border border-gray-300 hover:bg-blue-500 hover:text-white transition-all duration-300"
-            >
-              Edit Profile
-            </button>
+              <p className="text-gray-500 text-sm">{user?.email}</p>
+
+              {/* 🔥 BIO */}
+              <p className="text-gray-600 mt-2 max-w-md text-sm">
+                {user?.bio || "No bio added"}
+              </p>
+
+              {/* 🔥 EXTRA INFO */}
+              <div className="flex flex-wrap items-center gap-6 mt-3 text-sm text-gray-500">
+                {/* 📍 LOCATION */}
+                {user?.location && (
+                  <div className="flex items-center gap-2 hover:text-gray-700 transition">
+                    <MapPin size={16} className="text-blue-500" />
+                    <span className="font-medium">{user.location}</span>
+                  </div>
+                )}
+
+                {/* 📅 JOIN DATE */}
+                {user?.createdAt && (
+                  <div className="flex items-center gap-2 hover:text-gray-700 transition">
+                    <CalendarDays size={16} className="text-purple-500" />
+                    <span>
+                      Joined{" "}
+                      <span className="font-medium text-gray-700">
+                        {new Date(user.createdAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="px-4 py-2 bg-black text-white rounded-lg text-sm shadow"
+                >
+                  Edit Profile
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* BIO */}
-          <p className="mt-4 text-gray-700 leading-relaxed max-w-2xl">
-            {user.bio}
-          </p>
-
-          {/* INFO */}
-          <div className="flex gap-6 mt-4 text-gray-500 text-sm flex-wrap">
-            <span>📍 {user.location}</span>
-            <span>
-              🔗 <span className="text-blue-500">{user.website}</span>
-            </span>
-            <span>📅 Joined {user.joined}</span>
-          </div>
-
-          {/* STATS */}
-          <div className="flex gap-8 mt-6 text-sm">
-            <div className="hover:text-blue-500 cursor-pointer transition">
-              <b className="text-gray-800">{user.following}</b>
-              <span className="text-gray-500 ml-1">Following</span>
+          {/* RIGHT STATS */}
+          <div className="flex gap-10 text-center mt-4">
+            <div>
+              <p className="text-xl font-bold">{posts.length}</p>
+              <p className="text-gray-500 text-xs">Posts</p>
             </div>
 
-            <div className="hover:text-blue-500 cursor-pointer transition">
-              <b className="text-gray-800">{user.followers}</b>
-              <span className="text-gray-500 ml-1">Followers</span>
-            </div>
-
-            <div className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-medium">
-              {user.issuesResolved} Issues Resolved
+            <div>
+              <p className="text-xl font-bold">{user?.following || 0}</p>
+              <p className="text-gray-500 text-xs">Following</p>
             </div>
           </div>
-        </div>
-
-        {/* 🔥 TABS */}
-        <div className="flex border-t border-b bg-gray-50">
-          {["posts", "replies", "likes"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-3 text-sm capitalize transition-all duration-200 ${
-                activeTab === tab
-                  ? "border-b-2 border-blue-500 text-blue-600 font-semibold bg-white"
-                  : "text-gray-500 hover:bg-gray-100"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* 🔥 CONTENT */}
-        <div className="p-6 space-y-5 bg-gray-50">
-          {renderContent()}
         </div>
       </div>
 
-      {/* 🔥 MODAL */}
-      {isModalOpen && (
-        <EditProfileModal close={() => setIsModalOpen(false)} />
-      )}
+      {/* 🔥 TABS */}
+      <div className="flex gap-8 mt-6 border-b text-sm">
+        {["posts", "replies", "likes"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`pb-3 capitalize ${
+              activeTab === tab
+                ? "border-b-2 border-black text-black font-semibold"
+                : "text-gray-500"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* 🔥 POSTS */}
+      <div className="mt-6 grid md:grid-cols-2 gap-6">{renderContent()}</div>
+
+      {isModalOpen && <EditProfileModal close={() => setIsModalOpen(false)} />}
     </div>
   );
 };
