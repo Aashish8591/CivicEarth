@@ -13,19 +13,26 @@ const UserProfile = () => {
 
   // ✅ USE id (NOT _id)
   useEffect(() => {
-    const localUser = JSON.parse(localStorage.getItem("user"));
+    const storedUser = localStorage.getItem("user");
 
-    API.get(`/users/${localUser.id}`)
-      .then((res) => setUser(res.data))
-      .catch((err) => console.log(err));
-  }, []);
+    let localUser = null;
 
-  // ✅ USE id (NOT _id)
-  useEffect(() => {
-    const localUser = JSON.parse(localStorage.getItem("user"));
+    try {
+      localUser =
+        storedUser && storedUser !== "undefined"
+          ? JSON.parse(storedUser)
+          : null;
+    } catch {
+      localUser = null;
+    }
+
+    if (!localUser?.id) return;
 
     API.get(`/posts/user/${localUser.id}`)
-      .then((res) => setPosts(res.data))
+      .then((res) => {
+        console.log("User posts:", res.data); // 🔍 debug
+        setPosts(res.data);
+      })
       .catch((err) => console.log(err));
   }, []);
 
@@ -51,7 +58,20 @@ const UserProfile = () => {
 
       const result = await res.json();
 
-      const localUser = JSON.parse(localStorage.getItem("user"));
+      const storedUser = localStorage.getItem("user");
+
+      let localUser = null;
+
+      try {
+        localUser =
+          storedUser && storedUser !== "undefined"
+            ? JSON.parse(storedUser)
+            : null;
+      } catch {
+        localUser = null;
+      }
+
+      if (!localUser) return;
 
       await API.put(`/users/${localUser.id}`, {
         profilePic: result.secure_url,

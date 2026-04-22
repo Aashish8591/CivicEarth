@@ -1,5 +1,5 @@
-import React from "react";
-import { Route, Routes } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Route, Routes, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 import Login from "./pages/LoginRegister";
@@ -10,48 +10,58 @@ import AuthorityLayout from "./components/AuthorityLayout";
 import Discover from "./pages/Discover";
 import CreatePost from "./pages/CreatePost";
 import Messages from "./pages/Messages";
-//import AuthorityDashboard from "./pages/AuthorityDashboard";
+import AuthorityDashboard from "./pages/AuthorityDashboard";
+import AuthorityComplaints from "./pages/AuthorityComplaints";
+import AuthorityAnalytics from "./pages/AuthorityAnalytics";
+import AuthorityProfile from "./pages/AuthorityProfile";
 
 const App = () => {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [role, setRole] = useState(localStorage.getItem("role"));
+
+  useEffect(() => {
+    const updateAuth = () => {
+      setToken(localStorage.getItem("token"));
+      setRole(localStorage.getItem("role"));
+    };
+
+    window.addEventListener("authChanged", updateAuth);
+    return () => window.removeEventListener("authChanged", updateAuth);
+  }, []);
 
   return (
     <>
       <Toaster />
 
       <Routes>
-        <Route
-          path="/"
-          element={
-            !token ? (
-              <Login />
-            ) : role === "ADMIN" ? (
-              <AuthorityLayout />
-            ) : (
-              <UserLayout />
-            )
-          }
-        >
-          {/* USER ROUTES */}
-          {role !== "ADMIN" && (
-            <>
-              <Route index element={<Feed />} />
-              <Route path="profile" element={<UserProfile />} />
-              <Route path="discover" element={<Discover/>}/>
-              <Route path="messages" element={<Messages/>}/>
-              <Route path="/create-post" element={<CreatePost/>}/>
-            </>
-          )}
+        {/* 🔐 LOGIN */}
+        {!token && <Route path="*" element={<Login />} />}
 
-          {/* ADMIN ROUTES */}
-          {role === "ADMIN" && (
-            <>
-              <Route index element={<AuthorityDashboard />} />
-              <Route path="admin" element={<AuthorityDashboard />} />
-            </>
-          )}
-        </Route>
+        {/* 👤 USER APP */}
+        {token && role !== "ADMIN" && (
+          <Route path="/" element={<UserLayout />}>
+            <Route index element={<Feed />} />
+            <Route path="profile" element={<UserProfile />} />
+            <Route path="discover" element={<Discover />} />
+            <Route path="messages" element={<Messages />} />
+            <Route path="create-post" element={<CreatePost />} />
+          </Route>
+        )}
+
+        {/* 🏢 ADMIN REDIRECT */}
+        {token && role === "ADMIN" && (
+          <Route path="/" element={<Navigate to="/admin" />} />
+        )}
+
+        {/* 🏢 AUTHORITY APP */}
+        {token && role === "ADMIN" && (
+          <Route path="/admin" element={<AuthorityLayout />}>
+            <Route index element={<AuthorityDashboard />} />
+            <Route path="complaints" element={<AuthorityComplaints />} />
+            <Route path="analytics" element={<AuthorityAnalytics/>}/>
+            <Route path="profile" element={<AuthorityProfile/>}/>
+          </Route>
+        )}
       </Routes>
     </>
   );
