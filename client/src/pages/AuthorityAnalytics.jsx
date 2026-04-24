@@ -29,13 +29,13 @@ const AuthorityAnalytics = () => {
   }, []);
 
   // 🔥 COUNTS
-  const pending = posts.filter(p => p.status === "PENDING").length;
-  const progress = posts.filter(p => p.status === "IN_PROGRESS").length;
-  const resolved = posts.filter(p => p.status === "RESOLVED").length;
+  const pending = posts.filter((p) => p.status === "PENDING").length;
+  const progress = posts.filter((p) => p.status === "IN_PROGRESS").length;
+  const resolved = posts.filter((p) => p.status === "RESOLVED").length;
 
   // 🔥 GROUP BY LOCATION
   const locationMap = {};
-  posts.forEach(p => {
+  posts.forEach((p) => {
     locationMap[p.location] = (locationMap[p.location] || 0) + 1;
   });
 
@@ -45,13 +45,10 @@ const AuthorityAnalytics = () => {
   }));
 
   // 🔥 MONTHLY TREND (mock or enhance later)
-  const trendData = [
-    { name: "Mon", value: 5 },
-    { name: "Tue", value: 9 },
-    { name: "Wed", value: 6 },
-    { name: "Thu", value: 12 },
-    { name: "Fri", value: 8 },
-  ];
+  const trendData = posts.map((p, i) => ({
+    name: `#${i + 1}`,
+    value: p.status === "RESOLVED" ? 3 : p.status === "IN_PROGRESS" ? 2 : 1,
+  }));
 
   const pieData = [
     { name: "Pending", value: pending },
@@ -61,7 +58,6 @@ const AuthorityAnalytics = () => {
 
   return (
     <div className="w-full h-full bg-transparent min-h-screen space-y-6">
-
       {/* 🔥 HEADER */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Analytics</h1>
@@ -71,10 +67,26 @@ const AuthorityAnalytics = () => {
       {/* 🔥 STATS */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { title: "Total", value: posts.length, color: "from-pink-400 to-purple-500" },
-          { title: "Pending", value: pending, color: "from-yellow-400 to-orange-500" },
-          { title: "In Progress", value: progress, color: "from-blue-400 to-indigo-500" },
-          { title: "Resolved", value: resolved, color: "from-green-400 to-emerald-500" },
+          {
+            title: "Total",
+            value: posts.length,
+            color: "from-pink-400 to-purple-500",
+          },
+          {
+            title: "Pending",
+            value: pending,
+            color: "from-yellow-400 to-orange-500",
+          },
+          {
+            title: "In Progress",
+            value: progress,
+            color: "from-blue-400 to-indigo-500",
+          },
+          {
+            title: "Resolved",
+            value: resolved,
+            color: "from-green-400 to-emerald-500",
+          },
         ].map((card, i) => (
           <motion.div
             key={i}
@@ -89,7 +101,6 @@ const AuthorityAnalytics = () => {
 
       {/* 🔥 CHARTS */}
       <div className="grid grid-cols-3 gap-4">
-
         {/* LINE */}
         <motion.div
           className="col-span-2 bg-white/30 backdrop-blur-lg border border-white/20 p-5 rounded-2xl"
@@ -103,15 +114,18 @@ const AuthorityAnalytics = () => {
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={3} />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#6366f1"
+                strokeWidth={3}
+              />
             </LineChart>
           </ResponsiveContainer>
         </motion.div>
 
         {/* PIE */}
-        <motion.div
-          className="bg-white/30 backdrop-blur-lg border border-white/20 p-5 rounded-2xl flex flex-col items-center"
-        >
+        <motion.div className="bg-white/30 backdrop-blur-lg border border-white/20 p-5 rounded-2xl flex flex-col items-center">
           <h3 className="font-semibold mb-3">Status Ratio</h3>
 
           <PieChart width={200} height={200}>
@@ -129,13 +143,15 @@ const AuthorityAnalytics = () => {
         <h3 className="font-semibold mb-3">Top Locations</h3>
 
         {locationData.map((item, i) => (
-          <div key={i} className="flex justify-between text-sm py-2 border-b border-white/20">
+          <div
+            key={i}
+            className="flex justify-between text-sm py-2 border-b border-white/20"
+          >
             <span>{item.name}</span>
             <span>{item.value}</span>
           </div>
         ))}
       </div>
-
     </div>
   );
 };

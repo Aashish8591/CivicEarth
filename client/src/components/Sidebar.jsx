@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Compass,
-  MessageSquare,
+  Bell,
   User,
   PlusCircle,
 } from "lucide-react";
@@ -13,7 +13,7 @@ const Sidebar = () => {
   const menu = [
     { name: "Home", path: "/", icon: <Home size={18} /> },
     { name: "Discover", path: "/discover", icon: <Compass size={18} /> },
-    { name: "Messages", path: "/messages", icon: <MessageSquare size={18} /> },
+    { name: "Notifications", path: "/notifications", icon: <Bell size={18} /> },
     { name: "Profile", path: "/profile", icon: <User size={18} /> },
   ];
 

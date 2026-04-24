@@ -9,11 +9,12 @@ import UserLayout from "./components/UserLayout";
 import AuthorityLayout from "./components/AuthorityLayout";
 import Discover from "./pages/Discover";
 import CreatePost from "./pages/CreatePost";
-import Messages from "./pages/Messages";
+import Notifications from "./pages/Notifications";
 import AuthorityDashboard from "./pages/AuthorityDashboard";
 import AuthorityComplaints from "./pages/AuthorityComplaints";
 import AuthorityAnalytics from "./pages/AuthorityAnalytics";
 import AuthorityProfile from "./pages/AuthorityProfile";
+import PostDetails from "./pages/PostDetails";
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -43,8 +44,9 @@ const App = () => {
             <Route index element={<Feed />} />
             <Route path="profile" element={<UserProfile />} />
             <Route path="discover" element={<Discover />} />
-            <Route path="messages" element={<Messages />} />
+            <Route path="notifications" element={<Notifications />} />
             <Route path="create-post" element={<CreatePost />} />
+            <Route path="/post/:id" element={<PostDetails />} />
           </Route>
         )}
 

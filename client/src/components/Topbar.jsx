@@ -56,9 +56,11 @@ const Topbar = () => {
       {/* RIGHT */}
       <div className="flex items-center gap-4">
         {/* 🔔 Notification */}
-        <button className="p-2 rounded-full hover:bg-gray-100 transition">
-          <Bell size={20} className="text-gray-600" />
-        </button>
+        <Link to="/notifications">
+          <button className="p-2 rounded-full hover:bg-gray-100 transition">
+            <Bell size={20} className="text-gray-600" />
+          </button>
+        </Link>
 
         {/* 👤 Profile */}
         <Link to="/profile">

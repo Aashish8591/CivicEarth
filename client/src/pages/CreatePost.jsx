@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Image, AtSign, Send, X, MapPin, Tag } from "lucide-react";
 import API from "../api";
 
@@ -21,15 +21,43 @@ const CreatePost = ({ onPost }) => {
 
   const categories = ["Roads", "Water", "Drainage", "Garbage", "Electricity"];
 
-  const authorities = [
-    { name: "Kalyan Municipal Corporation", profilePic: "https://i.pravatar.cc/150?img=12" },
-    { name: "Traffic Police", profilePic: "https://i.pravatar.cc/150?img=8" },
-    { name: "Water Department", profilePic: "https://i.pravatar.cc/150?img=15" },
-    { name: "Electricity Board", profilePic: "https://i.pravatar.cc/150?img=20" },
-  ];
+  const [authorities, setAuthorities] = useState([]);
+  useEffect(() => {
+    const fetchAuthorities = async () => {
+      try {
+        const res = await API.get("/users");
 
-  const filtered = authorities.filter((a) =>
-    a.name.toLowerCase().includes(query.toLowerCase())
+        // 🔥 filter only ADMIN
+        const admins = res.data.filter((u) => u.role === "ADMIN");
+
+        setAuthorities(admins);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchAuthorities();
+  }, []);
+
+  const nearbyAuthorities = authorities;
+
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+  };
+
+  const filtered = nearbyAuthorities.filter((a) =>
+    a.fullName.toLowerCase().includes(query.toLowerCase()),
   );
 
   const handleSelect = (auth) => {
@@ -46,7 +74,7 @@ const CreatePost = ({ onPost }) => {
         const longitude = pos.coords.longitude;
 
         const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
         );
 
         const data = await res.json();
@@ -63,7 +91,7 @@ const CreatePost = ({ onPost }) => {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 0,
-      }
+      },
     );
   };
 
@@ -87,7 +115,7 @@ const CreatePost = ({ onPost }) => {
           {
             method: "POST",
             body: data,
-          }
+          },
         );
 
         const result = await res.json();
@@ -96,8 +124,16 @@ const CreatePost = ({ onPost }) => {
 
       const user = JSON.parse(localStorage.getItem("user"));
 
+      const categoryDepartmentMap = {
+        Roads: "Road department",
+        Water: "Water department",
+        Garbage: "Municipal department",
+        Electricity: "Electricity department",
+        Drainage: "Drainage department",
+      };
+
       await API.post("/posts", {
-        userId: user._id || user.id,
+        userId: user.id,
         content,
         imageUrl,
         authorityName: selectedAuthority?.name || "",
@@ -105,6 +141,9 @@ const CreatePost = ({ onPost }) => {
         category,
         latitude: lat,
         longitude: lng,
+
+        // 🔥 IMPORTANT ADD THIS
+        department: categoryDepartmentMap[category] || "General",
       });
 
       // 🔥 UPDATE UI
@@ -119,7 +158,6 @@ const CreatePost = ({ onPost }) => {
       setCategory("");
       setLat(null);
       setLng(null);
-
     } catch (err) {
       console.log(err);
     }
@@ -130,10 +168,12 @@ const CreatePost = ({ onPost }) => {
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 space-y-5 border">
-
         {/* USER */}
         <div className="flex items-center gap-3">
-          <img src="https://i.pravatar.cc/150?img=3" className="w-11 h-11 rounded-full shadow" />
+          <img
+            src="https://i.pravatar.cc/150?img=3"
+            className="w-11 h-11 rounded-full shadow"
+          />
           <span className="font-semibold text-gray-800">User</span>
         </div>
 
@@ -147,7 +187,6 @@ const CreatePost = ({ onPost }) => {
 
         {/* LOCATION + CATEGORY */}
         <div className="flex gap-3">
-
           {/* LOCATION */}
           <div
             onClick={getLocation}
@@ -173,13 +212,19 @@ const CreatePost = ({ onPost }) => {
               ))}
             </select>
           </div>
-
         </div>
 
         {/* AUTHORITY */}
         {!selectedAuthority && (
           <button
-            onClick={() => setShowMention(true)}
+            onClick={() => {
+              if (!location) {
+                alert("Please select location first");
+                return;
+              }
+
+              setShowMention(true);
+            }}
             className="text-sm text-blue-600 flex items-center gap-1"
           >
             <AtSign size={16} />
@@ -202,7 +247,7 @@ const CreatePost = ({ onPost }) => {
                 onClick={() => handleSelect(auth)}
                 className="p-2 hover:bg-gray-200 cursor-pointer rounded-lg"
               >
-                {auth.name}
+                {auth.fullName}
               </div>
             ))}
           </div>
@@ -226,7 +271,6 @@ const CreatePost = ({ onPost }) => {
 
         {/* ACTION */}
         <div className="flex justify-between border-t pt-4">
-
           <label className="cursor-pointer flex items-center gap-1">
             <Image size={18} />
             <input
@@ -246,14 +290,15 @@ const CreatePost = ({ onPost }) => {
             disabled={loading}
             className="bg-blue-600 text-white px-5 py-2 rounded-full flex items-center gap-2"
           >
-            {loading ? "Posting..." : (
+            {loading ? (
+              "Posting..."
+            ) : (
               <>
                 <Send size={16} />
                 Post
               </>
             )}
           </button>
-
         </div>
       </div>
     </div>

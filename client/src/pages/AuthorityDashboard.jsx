@@ -22,9 +22,18 @@ const AuthorityDashboard = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const res = await API.get(`/posts/department/${user.department}`);
-      setPosts(res.data);
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        if (!user?.department) return;
+
+        const res = await API.get(`/posts/department/${user.department}`);
+        setPosts(res.data);
+      } catch (err) {
+        console.log(err);
+      }
     };
+
     fetch();
   }, []);
 
@@ -48,7 +57,6 @@ const AuthorityDashboard = () => {
 
   return (
     <div className="w-full h-full bg-transparent min-h-screen space-y-6">
-     
       {/* 🔥 HEADER */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>

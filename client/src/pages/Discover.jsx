@@ -12,7 +12,7 @@ const Discover = () => {
   const [authorities, setAuthorities] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔥 FETCH DATA FROM BACKEND
+  // 🔥 FETCH DATA
   useEffect(() => {
     fetchData();
   }, []);
@@ -21,12 +21,21 @@ const Discover = () => {
     try {
       setLoading(true);
 
-      // 🔥 CALL YOUR APIs (adjust endpoints if needed)
-      const [postRes] = await Promise.all([API.get("/posts")]);
+      // ✅ FETCH POSTS + USERS
+      const [postRes, userRes] = await Promise.all([
+        API.get("/posts"),
+        API.get("/users"),
+      ]);
+
+      const allUsers = userRes.data || [];
 
       setPosts(postRes.data || []);
-      setUsers(userRes.data || []);
-      setAuthorities(authRes.data || []);
+
+      // ✅ NORMAL USERS
+      setUsers(allUsers.filter((u) => u.role !== "ADMIN"));
+
+      // ✅ AUTHORITIES
+      setAuthorities(allUsers.filter((u) => u.role === "ADMIN"));
     } catch (err) {
       console.log("Error fetching data:", err);
     } finally {
@@ -34,30 +43,31 @@ const Discover = () => {
     }
   };
 
-  // 🔥 SEARCH FILTER
+  // 🔍 SEARCH
   const filteredPosts = posts.filter((p) =>
-    p.content?.toLowerCase().includes(query.toLowerCase()),
+    p.content?.toLowerCase().includes(query.toLowerCase())
   );
 
   const filteredUsers = users.filter((u) =>
-    u.fullName?.toLowerCase().includes(query.toLowerCase()),
+    u.fullName?.toLowerCase().includes(query.toLowerCase())
   );
 
   const filteredAuthorities = authorities.filter((a) =>
-    a.name?.toLowerCase().includes(query.toLowerCase()),
+    a.fullName?.toLowerCase().includes(query.toLowerCase())
   );
 
   return (
     <div className="w-full max-w-5xl mx-auto px-5 py-4">
-      {/* 🔍 SEARCH BAR */}
-      <div className="bg-white/70 backdrop-blur-lg rounded-xl shadow p-3 flex items-center gap-2 border">
+
+      {/* 🔍 SEARCH */}
+      <div className="bg-white rounded-xl shadow p-3 flex items-center gap-2 border">
         <Search size={18} className="text-gray-500" />
         <input
           type="text"
           placeholder="Search complaints, users, authorities..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full outline-none text-sm bg-transparent"
+          className="w-full outline-none text-sm"
         />
       </div>
 
@@ -68,7 +78,9 @@ const Discover = () => {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-1 rounded-full text-sm transition ${
-              activeTab === tab ? "bg-blue-600 text-white" : "bg-white shadow"
+              activeTab === tab
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100"
             }`}
           >
             {tab}
@@ -77,36 +89,44 @@ const Discover = () => {
       </div>
 
       {/* 🔄 LOADING */}
-      {loading && <p className="text-center mt-6 text-gray-500">Loading...</p>}
+      {loading && (
+        <p className="text-center mt-6 text-gray-500">Loading...</p>
+      )}
 
       {/* 🔥 POSTS */}
       {(activeTab === "all" || activeTab === "complaints") && (
         <div className="space-y-4 mt-4">
           {filteredPosts.length > 0 ? (
-            filteredPosts.map((post) => <PostCard key={post.id} post={post} />)
+            filteredPosts.map((post) => (
+              <PostCard key={post._id || post.id} post={post} />
+            ))
           ) : (
-            <p className="text-center text-gray-500">No complaints found</p>
+            <p className="text-center text-gray-500">
+              No complaints found
+            </p>
           )}
         </div>
       )}
 
       {/* 🔥 USERS */}
       {(activeTab === "all" || activeTab === "users") && (
-        <div className="bg-white/70 backdrop-blur-lg rounded-xl p-4 mt-6 shadow border">
+        <div className="bg-white rounded-xl p-4 mt-6 shadow border">
           <h3 className="font-semibold mb-3 text-gray-700">Users</h3>
 
           {filteredUsers.length > 0 ? (
             filteredUsers.map((user) => (
               <div
-                key={user.id}
-                className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer"
+                key={user._id || user.id}
+                className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer transition"
               >
                 <img
                   src={user.profilePic}
-                  className="w-10 h-10 rounded-full"
+                  className="w-10 h-10 rounded-full object-cover"
                   alt="user"
                 />
-                <span className="font-medium">{user.fullName}</span>
+                <span className="font-medium">
+                  {user.fullName}
+                </span>
               </div>
             ))
           ) : (
@@ -117,25 +137,31 @@ const Discover = () => {
 
       {/* 🔥 AUTHORITIES */}
       {(activeTab === "all" || activeTab === "authorities") && (
-        <div className="bg-white/70 backdrop-blur-lg rounded-xl p-4 mt-6 shadow border">
-          <h3 className="font-semibold mb-3 text-gray-700">Authorities</h3>
+        <div className="bg-white rounded-xl p-4 mt-6 shadow border">
+          <h3 className="font-semibold mb-3 text-gray-700">
+            Authorities
+          </h3>
 
           {filteredAuthorities.length > 0 ? (
             filteredAuthorities.map((auth) => (
               <div
-                key={auth.id}
-                className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer"
+                key={auth._id || auth.id}
+                className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer transition"
               >
                 <img
                   src={auth.profilePic}
-                  className="w-10 h-10 rounded-full"
+                  className="w-10 h-10 rounded-full object-cover"
                   alt="authority"
                 />
-                <span className="font-medium">{auth.name}</span>
+                <span className="font-medium">
+                  {auth.fullName}
+                </span>
               </div>
             ))
           ) : (
-            <p className="text-gray-500 text-sm">No authorities found</p>
+            <p className="text-gray-500 text-sm">
+              No authorities found
+            </p>
           )}
         </div>
       )}

@@ -27,45 +27,49 @@ const Feed = () => {
 
       // ✅ FIXED: REMOVE DUMMY DATA
       const formattedPosts = await Promise.all(
-  res.data.map(async (post) => {
-    try {
-      const userRes = await API.get(`/users/${post.userId}`);
+        res.data.map(async (post) => {
+          try {
+            const userRes = await API.get(`/users/${post.userId}`);
 
-      return {
-        id: post.id,
+            return {
+              id: post.id,
 
-        // ✅ REAL USER FROM BACKEND
-        user: {
-          fullName: userRes.data.fullName,
-          profilePic: userRes.data.profilePic,
-        },
+              // ✅ REAL USER FROM BACKEND
+              user: {
+                fullName: userRes.data.fullName,
+                profilePic: userRes.data.profilePic,
+              },
 
-        content: post.content,
-        createdAt: post.createdAt,
-        imageUrl: post.imageUrl,
+              content: post.content,
+              createdAt: post.createdAt,
+              imageUrl: post.imageUrl,
 
-        location: post.location,
-        category: post.category,
+              location: post.location,
+              category: post.category,
 
-        latitude: post.latitude,
-        longitude: post.longitude,
+              latitude: post.latitude,
+              longitude: post.longitude,
 
-        likes: post.likes || [],
-        comments: post.comments || [],
-      };
-    } catch (err) {
-      console.log("User fetch error", err);
+              likes: post.likes || [],
+              comments: post.comments || [],
 
-      return {
-        ...post,
-        user: {
-          fullName: "Unknown",
-          profilePic: "",
-        },
-      };
-    }
-  })
-);
+              status: post.status,
+              proofImage: post.proofImage,
+              authorityMessage: post.authorityMessage,
+            };
+          } catch (err) {
+            console.log("User fetch error", err);
+
+            return {
+              ...post,
+              user: {
+                fullName: "Unknown",
+                profilePic: "",
+              },
+            };
+          }
+        }),
+      );
       setFeeds(formattedPosts);
     } catch (err) {
       console.log("Error fetching posts:", err);
@@ -81,33 +85,24 @@ const Feed = () => {
 
   return !loading ? (
     <div className="w-full h-full bg-transparent">
-      
       {/* 🔥 MAIN CONTAINER */}
       <div className="w-full max-w-5xl mx-auto px-5 py-4">
-
         {/* 🔥 HEADER */}
         <div className="flex items-center justify-between mb-6">
-
-          <h1 className="text-2xl font-bold text-gray-800">
-            Feed
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800">Feed</h1>
 
           <div className="relative">
-
             <button
               onClick={() => setShowFilter(!showFilter)}
               className="flex items-center gap-2 px-4 py-2 bg-white/70 backdrop-blur-md border rounded-xl shadow-sm hover:shadow-md transition"
             >
               <SlidersHorizontal size={16} />
-              <span className="text-sm font-medium capitalize">
-                {filter}
-              </span>
+              <span className="text-sm font-medium capitalize">{filter}</span>
             </button>
 
             {/* 🔥 DROPDOWN */}
             {showFilter && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border p-2 z-50">
-
                 <button
                   onClick={() => {
                     setFilter("latest");
@@ -147,10 +142,8 @@ const Feed = () => {
                 >
                   Most Liked ❤️
                 </button>
-
               </div>
             )}
-
           </div>
         </div>
 
@@ -171,7 +164,6 @@ const Feed = () => {
             </p>
           )}
         </div>
-
       </div>
     </div>
   ) : (

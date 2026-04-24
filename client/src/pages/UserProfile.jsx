@@ -28,9 +28,12 @@ const UserProfile = () => {
 
     if (!localUser?.id) return;
 
+    // 🔥 FIX: SET USER HERE
+    setUser(localUser);
+
+    // fetch posts
     API.get(`/posts/user/${localUser.id}`)
       .then((res) => {
-        console.log("User posts:", res.data); // 🔍 debug
         setPosts(res.data);
       })
       .catch((err) => console.log(err));
