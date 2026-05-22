@@ -13,8 +13,6 @@ const PostDetails = () => {
       try {
         const res = await API.get(`/posts/${id}`);
         setPost(res.data);
-
-        setPost(found);
       } catch (err) {
         console.log(err);
       } finally {
