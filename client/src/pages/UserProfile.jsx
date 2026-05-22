@@ -3,41 +3,50 @@ import API from "../api";
 import PostCard from "../components/PostCard";
 import EditProfileModal from "../components/EditProfileModal";
 import { MapPin, CalendarDays } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 const UserProfile = () => {
+  const { id } = useParams();
   const [activeTab, setActiveTab] = useState("posts");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [preview, setPreview] = useState(null);
   const [posts, setPosts] = useState([]);
+  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const isOwner = currentUser?.id === user?.id;
 
   // ✅ USE id (NOT _id)
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    const fetchUser = async () => {
+      try {
+        // 🔥 IMPORTANT FIX
+        let userId;
 
-    let localUser = null;
+        if (id) {
+          // 👉 If coming from Discover click
+          userId = id;
+        } else {
+          // 👉 If opening own profile
+          const stored = JSON.parse(localStorage.getItem("user"));
+          userId = stored?.id;
+        }
 
-    try {
-      localUser =
-        storedUser && storedUser !== "undefined"
-          ? JSON.parse(storedUser)
-          : null;
-    } catch {
-      localUser = null;
-    }
+        if (!userId) return;
 
-    if (!localUser?.id) return;
+        // 🔥 FETCH SELECTED USER (not current user)
+        const res = await API.get(`/users/${userId}`);
+        setUser(res.data);
 
-    // 🔥 FIX: SET USER HERE
-    setUser(localUser);
+        // 🔥 FETCH THEIR POSTS
+        const postRes = await API.get(`/posts/user/${userId}`);
+        setPosts(postRes.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
 
-    // fetch posts
-    API.get(`/posts/user/${localUser.id}`)
-      .then((res) => {
-        setPosts(res.data);
-      })
-      .catch((err) => console.log(err));
-  }, []);
+    fetchUser();
+  }, [id]);
 
   // 🔥 IMAGE UPLOAD
   const handleImageUpload = async (e) => {
@@ -113,15 +122,15 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-6 py-6">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6">
       {/* 🔥 SPACE */}
-      <div className="h-16" />
+      <div className="hidden md:block h-16" />
 
       {/* 🔥 PROFILE CARD */}
       <div className="bg-white rounded-2xl shadow-xl p-6 relative">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-6">
           {/* LEFT */}
-          <div className="flex gap-6 items-start">
+         <div className="flex flex-col sm:flex-row gap-6 items-start">
             {/* 🔥 FLOATING IMAGE */}
             <label className="cursor-pointer">
               <div className="relative -mt-16">
@@ -185,12 +194,14 @@ const UserProfile = () => {
               </div>
 
               <div className="flex gap-3 mt-4">
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="px-4 py-2 bg-black text-white rounded-lg text-sm shadow"
-                >
-                  Edit Profile
-                </button>
+                {isOwner && (
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="px-4 py-2 bg-black text-white rounded-lg text-sm shadow"
+                  >
+                    Edit Profile
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -228,7 +239,7 @@ const UserProfile = () => {
       </div>
 
       {/* 🔥 POSTS */}
-      <div className="mt-6 grid md:grid-cols-2 gap-6">{renderContent()}</div>
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">{renderContent()}</div>
 
       {isModalOpen && <EditProfileModal close={() => setIsModalOpen(false)} />}
     </div>

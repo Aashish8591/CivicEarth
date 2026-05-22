@@ -47,6 +47,7 @@ const App = () => {
             <Route path="notifications" element={<Notifications />} />
             <Route path="create-post" element={<CreatePost />} />
             <Route path="/post/:id" element={<PostDetails />} />
+            <Route path="/profile/:id" element={<UserProfile />} />
           </Route>
         )}
 

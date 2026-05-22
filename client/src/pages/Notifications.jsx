@@ -37,21 +37,21 @@ const Notifications = () => {
       : notifications.filter((n) => n.status === filter);
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-6 py-6">
+    <div className="w-full max-w-5xl mx-auto px-4 md:px-6 py-4 md:py-6">
       {/* 🔥 HEADER */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
           <Bell size={22} />
           Notifications
         </h1>
 
         {/* 🔥 FILTER */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {["ALL", "PENDING", "IN_PROGRESS", "RESOLVED"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1 rounded-full text-sm ${
+              className={`px-3 py-1 rounded-full text-xs md:text-sm whitespace-nowrap flex-shrink-0 ${
                 filter === f
                   ? "bg-blue-600 text-white"
                   : "bg-gray-200 text-gray-700"
@@ -80,11 +80,11 @@ const Notifications = () => {
               className="bg-white p-5 rounded-2xl shadow-sm border hover:shadow-md transition-all"
             >
               {/* 🔥 TOP */}
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                 <div>
                   <p className="text-sm text-gray-800">
                     📢 Complaint:
-                    <span className="font-medium ml-2">
+                    <span className="font-medium ml-2 break-words">
                       {post.content.slice(0, 60)}...
                     </span>
                   </p>
@@ -99,7 +99,7 @@ const Notifications = () => {
 
                 {/* 🔥 STATUS BADGE */}
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1
+                  className={`w-fit px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1
                   ${
                     post.status === "RESOLVED"
                       ? "bg-green-100 text-green-600"
@@ -126,12 +126,12 @@ const Notifications = () => {
               {post.proofImage && (
                 <img
                   src={post.proofImage}
-                  className="mt-3 w-full max-h-[250px] object-cover rounded-lg"
+                  className="mt-3 w-full h-auto max-h-[220px] md:max-h-[250px] object-cover rounded-lg"
                 />
               )}
 
               {/* 🔥 TRACK BUTTON */}
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex justify-start sm:justify-end">
                 <button
                   onClick={() => navigate(`/post/${post.id}`)}
                   className="text-blue-500 text-sm font-medium hover:underline"

@@ -23,8 +23,6 @@ const AuthorityDashboard = () => {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const user = JSON.parse(localStorage.getItem("user"));
-
         if (!user?.department) return;
 
         const res = await API.get(`/posts/department/${user.department}`);
@@ -37,34 +35,51 @@ const AuthorityDashboard = () => {
     fetch();
   }, []);
 
+  // 🔥 STATUS COUNTS
   const pending = posts.filter((p) => p.status === "PENDING").length;
   const progress = posts.filter((p) => p.status === "IN_PROGRESS").length;
   const resolved = posts.filter((p) => p.status === "RESOLVED").length;
 
-  const chartData = [
-    { name: "Mon", value: 5 },
-    { name: "Tue", value: 10 },
-    { name: "Wed", value: 7 },
-    { name: "Thu", value: 12 },
-    { name: "Fri", value: 9 },
-  ];
+  // 🔥 PIE %
+  const total = posts.length || 1;
 
   const pieData = [
-    { name: "Pending", value: pending },
-    { name: "Progress", value: progress },
-    { name: "Resolved", value: resolved },
+    { name: "Pending", value: Math.round((pending / total) * 100) },
+    { name: "Progress", value: Math.round((progress / total) * 100) },
+    { name: "Resolved", value: Math.round((resolved / total) * 100) },
   ];
+
+  // 🔥 LINE CHART (REAL DATA BY DAY)
+  const groupByDate = {};
+
+  posts.forEach((p) => {
+    const date = new Date(p.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+
+    if (!groupByDate[date]) {
+      groupByDate[date] = 0;
+    }
+
+    groupByDate[date] += 1;
+  });
+
+  const chartData = Object.keys(groupByDate).map((date) => ({
+    name: date,
+    value: groupByDate[date],
+  }));
 
   return (
     <div className="w-full h-full bg-transparent min-h-screen space-y-6">
-      {/* 🔥 HEADER */}
+      {/* HEADER */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
         <p className="text-gray-500 text-sm">Overview of complaints</p>
       </div>
 
-      {/* 🔥 TOP STATS */}
-      <div className="grid grid-cols-4 gap-6">
+      {/* TOP STATS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[
           { title: "Pending", value: pending, color: "bg-pink-500" },
           { title: "In Progress", value: progress, color: "bg-purple-500" },
@@ -73,19 +88,19 @@ const AuthorityDashboard = () => {
         ].map((card, i) => (
           <div
             key={i}
-            className={`p-5 rounded-2xl text-white shadow-md ${card.color}`}
+           className={`p-4 md:p-5 rounded-2xl  text-white shadow-md ${card.color}`}
           >
             <p className="text-sm opacity-80">{card.title}</p>
-            <h2 className="text-2xl font-bold">{card.value}</h2>
+            <h2 className="text-xl md:text-2xl font-bold">{card.value}</h2>
           </div>
         ))}
       </div>
 
-      {/* 🔥 MAIN SECTION */}
-      <div className="grid grid-cols-3 gap-6">
-        {/* 🔥 LINE CHART */}
-        <div className="col-span-2 bg-white p-6 rounded-2xl shadow-md">
-          <h3 className="font-semibold mb-4">Monthly Overview</h3>
+      {/* MAIN */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        {/* LINE CHART */}
+        <div className="lg:col-span-2 bg-white p-4 md:p-6 rounded-2xl shadow-md overflow-x-auto">
+          <h3 className="font-semibold mb-4">Complaint Trend</h3>
 
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chartData}>
@@ -98,21 +113,15 @@ const AuthorityDashboard = () => {
                 stroke="#ec4899"
                 strokeWidth={3}
               />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="#8b5cf6"
-                strokeWidth={2}
-              />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* 🔥 PIE */}
-        <div className="bg-white p-6 rounded-2xl shadow-md flex flex-col items-center">
-          <h3 className="font-semibold mb-4">Traffic</h3>
+        {/* PIE */}
+        <div className="bg-white p-4 md:p-6 rounded-2xl shadow-md flex flex-col items-center">
+          <h3 className="font-semibold mb-4">Status Distribution</h3>
 
-          <PieChart width={220} height={220}>
+          <PieChart width={180} height={180}>
             <Pie data={pieData} dataKey="value" outerRadius={80}>
               {pieData.map((entry, index) => (
                 <Cell key={index} fill={COLORS[index]} />
@@ -121,17 +130,17 @@ const AuthorityDashboard = () => {
           </PieChart>
 
           <div className="flex justify-around w-full mt-4 text-sm">
-            <span className="text-pink-500">{pending}%</span>
-            <span className="text-blue-500">{progress}%</span>
-            <span className="text-green-500">{resolved}%</span>
+            <span className="text-pink-500">{pieData[0].value}%</span>
+            <span className="text-blue-500">{pieData[1].value}%</span>
+            <span className="text-green-500">{pieData[2].value}%</span>
           </div>
         </div>
       </div>
 
-      {/* 🔥 SECOND ROW */}
-      <div className="grid grid-cols-3 gap-6">
-        {/* 🔥 RECENT */}
-        <div className="bg-white p-6 rounded-2xl shadow-md">
+      {/* SECOND ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        {/* RECENT */}
+        <div className="bg-white p-4 md:p-6 rounded-2xl shadow-md">
           <h3 className="font-semibold mb-4">Recent Activity</h3>
 
           {posts.slice(0, 5).map((p) => (
@@ -145,27 +154,27 @@ const AuthorityDashboard = () => {
           ))}
         </div>
 
-        {/* 🔥 SMALL CARDS */}
-        <div className="space-y-4">
+        {/* SMALL CARDS (REAL DATA) */}
+        <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
           <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white p-4 rounded-xl">
-            <p>Revenue Status</p>
-            <h2 className="text-xl font-bold">$432</h2>
+            <p>Total Complaints</p>
+            <h2 className="text-xl font-bold">{posts.length}</h2>
           </div>
 
           <div className="bg-gradient-to-r from-blue-400 to-indigo-500 text-white p-4 rounded-xl">
-            <p>Page Views</p>
-            <h2 className="text-xl font-bold">$432</h2>
+            <p>Resolved Complaints</p>
+            <h2 className="text-xl font-bold">{resolved}</h2>
           </div>
         </div>
 
-        {/* 🔥 MINI CHART */}
+        {/* MINI CARD */}
         <div className="bg-gradient-to-r from-orange-400 to-yellow-500 text-white p-6 rounded-xl">
-          <p>Revenue Status</p>
-          <h2 className="text-xl font-bold">$432</h2>
+          <p>Pending Complaints</p>
+          <h2 className="text-xl font-bold">{pending}</h2>
         </div>
       </div>
 
-      {/* 🔥 TABLE */}
+      {/* TABLE */}
       <div className="bg-white p-6 rounded-2xl shadow-md">
         <h3 className="font-semibold mb-4">All Complaints</h3>
 
@@ -192,8 +201,8 @@ const AuthorityDashboard = () => {
                       post.status === "PENDING"
                         ? "bg-pink-500"
                         : post.status === "IN_PROGRESS"
-                          ? "bg-blue-500"
-                          : "bg-green-500"
+                        ? "bg-blue-500"
+                        : "bg-green-500"
                     }`}
                   >
                     {post.status}

@@ -125,18 +125,18 @@ const CreatePost = ({ onPost }) => {
       const user = JSON.parse(localStorage.getItem("user"));
 
       const categoryDepartmentMap = {
-        Roads: "Road department",
-        Water: "Water department",
-        Garbage: "Municipal department",
-        Electricity: "Electricity department",
-        Drainage: "Drainage department",
+        Roads: "ROADS",
+        Water: "WATER",
+        Garbage: "GARBAGE",
+        Electricity: "ELECTRICITY",
+        Drainage: "DRAINAGE",
       };
 
       await API.post("/posts", {
         userId: user.id,
         content,
         imageUrl,
-        authorityName: selectedAuthority?.name || "",
+        authorityName: selectedAuthority?.fullName || "",
         location,
         category,
         latitude: lat,
@@ -169,12 +169,23 @@ const CreatePost = ({ onPost }) => {
     <div className="w-full max-w-3xl mx-auto">
       <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 space-y-5 border">
         {/* USER */}
+        {/* USER */}
         <div className="flex items-center gap-3">
-          <img
-            src="https://i.pravatar.cc/150?img=3"
-            className="w-11 h-11 rounded-full shadow"
-          />
-          <span className="font-semibold text-gray-800">User</span>
+          {(() => {
+            const user = JSON.parse(localStorage.getItem("user"));
+
+            return (
+              <>
+                <img
+                  src={user?.profilePic || "https://via.placeholder.com/100"}
+                  className="w-11 h-11 rounded-full shadow object-cover"
+                />
+                <span className="font-semibold text-gray-800">
+                  {user?.fullName || "User"}
+                </span>
+              </>
+            );
+          })()}
         </div>
 
         {/* TEXT */}
@@ -250,6 +261,11 @@ const CreatePost = ({ onPost }) => {
                 {auth.fullName}
               </div>
             ))}
+          </div>
+        )}
+        {selectedAuthority && (
+          <div className="flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-sm">
+            Mentioned: {selectedAuthority.fullName}
           </div>
         )}
 

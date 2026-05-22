@@ -93,13 +93,13 @@ const AuthorityProfile = () => {
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 py-6">
-      <div className="h-16" />
+      <div className="hidden md:block h-16" />
 
       {/* 🔥 PROFILE CARD */}
       <div className="bg-white rounded-2xl shadow-xl p-6 relative">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-6">
           {/* LEFT */}
-          <div className="flex gap-6 items-start">
+          <div className="flex flex-col sm:flex-row gap-6 items-start">
             {/* PROFILE IMAGE */}
             <label className="cursor-pointer">
               <div className="relative -mt-16">
@@ -139,7 +139,7 @@ const AuthorityProfile = () => {
                   </p>
 
                   <p className="text-xs text-white bg-blue-500 px-3 py-1 rounded-full">
-                    {user?.department} Department
+                    {user?.department} DEPARTMENT
                   </p>
                 </div>
               </div>
@@ -224,7 +224,7 @@ const AuthorityProfile = () => {
       </div>
 
       {/* 🔥 POSTS */}
-      <div className="mt-6 grid md:grid-cols-2 gap-6">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
         {visiblePosts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}

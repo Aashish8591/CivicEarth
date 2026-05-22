@@ -20,57 +20,13 @@ const Feed = () => {
       if (filter === "trending" || filter === "likes") {
         url = "/posts?sort=likes";
       } else if (filter === "nearby") {
-        url = "/posts?location=mumbai"; // later dynamic
+        url = "/posts?location=mumbai";
       }
 
       const res = await API.get(url);
 
-      // ✅ FIXED: REMOVE DUMMY DATA
-      const formattedPosts = await Promise.all(
-        res.data.map(async (post) => {
-          try {
-            const userRes = await API.get(`/users/${post.userId}`);
-
-            return {
-              id: post.id,
-
-              // ✅ REAL USER FROM BACKEND
-              user: {
-                fullName: userRes.data.fullName,
-                profilePic: userRes.data.profilePic,
-              },
-
-              content: post.content,
-              createdAt: post.createdAt,
-              imageUrl: post.imageUrl,
-
-              location: post.location,
-              category: post.category,
-
-              latitude: post.latitude,
-              longitude: post.longitude,
-
-              likes: post.likes || [],
-              comments: post.comments || [],
-
-              status: post.status,
-              proofImage: post.proofImage,
-              authorityMessage: post.authorityMessage,
-            };
-          } catch (err) {
-            console.log("User fetch error", err);
-
-            return {
-              ...post,
-              user: {
-                fullName: "Unknown",
-                profilePic: "",
-              },
-            };
-          }
-        }),
-      );
-      setFeeds(formattedPosts);
+      // ✅ SIMPLE (NO EXTRA API CALLS)
+      setFeeds(res.data);
     } catch (err) {
       console.log("Error fetching posts:", err);
     } finally {

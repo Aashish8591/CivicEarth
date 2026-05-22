@@ -36,13 +36,16 @@ const PostCard = ({ post }) => {
     post.authorityName &&
     currentUser?.fullName === post.authorityName;
 
-  const userName = post?.user?.fullName || currentUser?.fullName || "User";
-  const userImage = post?.user?.profilePic || currentUser?.profilePic || "";
+  const userName = post?.user?.fullName || "Unknown";
+  const userImage = post?.user?.profilePic || "";
 
   const [likes, setLikes] = useState(post.likes?.length || 0);
   const [comments, setComments] = useState(post.comments || []);
   const [commentInput, setCommentInput] = useState("");
   const [showComments, setShowComments] = useState(false);
+  const [isLiked, setIsLiked] = useState(
+    currentUser ? post.likes?.includes(currentUser.id) : false,
+  );
 
   const createdTime = post?.createdAt || post?.created_at;
 
@@ -81,13 +84,17 @@ const PostCard = ({ post }) => {
   // ❤️ LIKE
   const handleLike = async () => {
     try {
-      await API.post(`/posts/${post.id}/like?userId=${currentUser.id}`);
+      const res = await API.post(
+        `/posts/${post.id}/like?userId=${currentUser.id}`,
+      );
 
-      if (post.likes?.includes(currentUser.id)) {
-        setLikes((prev) => prev - 1);
-      } else {
-        setLikes((prev) => prev + 1);
-      }
+      const updatedPost = res.data;
+
+      // 🔥 update likes from backend (correct source)
+      setLikes(updatedPost.likes.length);
+
+      // 🔥 update liked state
+      setIsLiked(updatedPost.likes.includes(currentUser.id));
     } catch (err) {
       console.log(err);
     }
@@ -98,9 +105,19 @@ const PostCard = ({ post }) => {
     if (!commentInput.trim()) return;
 
     try {
-      await API.post(`/posts/${post.id}/comment?text=${commentInput}`);
+      // 🔥 get current user
+      const user = currentUser?.fullName || "User";
 
-      setComments([...comments, { text: commentInput }]);
+      // 🔥 attach name with comment
+      const finalComment = `${user}: ${commentInput}`;
+
+      const res = await API.post(
+        `/posts/${post.id}/comment?text=${finalComment}`,
+      );
+
+      // 🔥 update from backend (important)
+      setComments(res.data.comments);
+
       setCommentInput("");
     } catch (err) {
       console.log(err);
@@ -269,7 +286,12 @@ const PostCard = ({ post }) => {
             onClick={handleLike}
             className="flex items-center gap-1 hover:text-red-500 transition"
           >
-            <Heart size={18} />
+            <Heart
+              size={18}
+              className={`transition ${
+                isLiked ? "text-red-500 fill-red-500" : ""
+              }`}
+            />
             <span>{likes}</span>
           </button>
 
@@ -287,11 +309,17 @@ const PostCard = ({ post }) => {
       {/* 🔥 COMMENTS */}
       {showComments && (
         <div className="px-4 pb-4 space-y-2">
-          {comments.map((c, i) => (
-            <p key={i} className="text-sm text-gray-700">
-              {c.text}
-            </p>
-          ))}
+          {comments.map((c, i) => {
+            const [name, ...textParts] = (c.text || c).split(": ");
+            const text = textParts.join(": ");
+
+            return (
+              <p key={i} className="text-sm text-gray-700">
+                <span className="font-semibold text-gray-800">{name}</span>:{" "}
+                {text}
+              </p>
+            );
+          })}
 
           <div className="flex gap-2">
             <input

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import API from "../api";
 import PostCard from "../components/PostCard";
+import { useNavigate } from "react-router-dom"; // ✅ NEW
 
 const Discover = () => {
   const [query, setQuery] = useState("");
@@ -12,7 +13,8 @@ const Discover = () => {
   const [authorities, setAuthorities] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔥 FETCH DATA
+  const navigate = useNavigate(); // ✅ NEW
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -21,7 +23,6 @@ const Discover = () => {
     try {
       setLoading(true);
 
-      // ✅ FETCH POSTS + USERS
       const [postRes, userRes] = await Promise.all([
         API.get("/posts"),
         API.get("/users"),
@@ -30,11 +31,7 @@ const Discover = () => {
       const allUsers = userRes.data || [];
 
       setPosts(postRes.data || []);
-
-      // ✅ NORMAL USERS
       setUsers(allUsers.filter((u) => u.role !== "ADMIN"));
-
-      // ✅ AUTHORITIES
       setAuthorities(allUsers.filter((u) => u.role === "ADMIN"));
     } catch (err) {
       console.log("Error fetching data:", err);
@@ -43,7 +40,6 @@ const Discover = () => {
     }
   };
 
-  // 🔍 SEARCH
   const filteredPosts = posts.filter((p) =>
     p.content?.toLowerCase().includes(query.toLowerCase())
   );
@@ -57,27 +53,27 @@ const Discover = () => {
   );
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-5 py-4">
+    <div className="w-full max-w-5xl mx-auto px-4 md:px-6 py-4 md:py-6 pb-24">
 
-      {/* 🔍 SEARCH */}
-      <div className="bg-white rounded-xl shadow p-3 flex items-center gap-2 border">
+      {/* SEARCH */}
+      <div className="bg-white rounded-xl shadow px-3 py-3 md:p-3 flex items-center gap-2 border">
         <Search size={18} className="text-gray-500" />
         <input
           type="text"
           placeholder="Search complaints, users, authorities..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full outline-none text-sm"
+          className="w-full outline-none text-sm md:text-base"
         />
       </div>
 
-      {/* 🔹 TABS */}
-      <div className="flex gap-3 mt-4">
+      {/* TABS */}
+      <div className="flex gap-3 mt-4 overflow-x-auto pb-1 scrollbar-hide">
         {["all", "complaints", "users", "authorities"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-1 rounded-full text-sm transition ${
+            className={`px-4 py-1 rounded-full text-xs md:text-sm whitespace-nowrap flex-shrink-0 transition ${
               activeTab === tab
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100"
@@ -88,14 +84,13 @@ const Discover = () => {
         ))}
       </div>
 
-      {/* 🔄 LOADING */}
       {loading && (
         <p className="text-center mt-6 text-gray-500">Loading...</p>
       )}
 
-      {/* 🔥 POSTS */}
+      {/* POSTS */}
       {(activeTab === "all" || activeTab === "complaints") && (
-        <div className="space-y-4 mt-4">
+        <div className="space-y-5 mt-5">
           {filteredPosts.length > 0 ? (
             filteredPosts.map((post) => (
               <PostCard key={post._id || post.id} post={post} />
@@ -108,23 +103,24 @@ const Discover = () => {
         </div>
       )}
 
-      {/* 🔥 USERS */}
+      {/* USERS */}
       {(activeTab === "all" || activeTab === "users") && (
-        <div className="bg-white rounded-xl p-4 mt-6 shadow border">
+        <div className="bg-white rounded-xl p-4 md:p-5 mt-6 shadow border">
           <h3 className="font-semibold mb-3 text-gray-700">Users</h3>
 
           {filteredUsers.length > 0 ? (
             filteredUsers.map((user) => (
               <div
                 key={user._id || user.id}
-                className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer transition"
+                onClick={() => navigate(`/profile/${user.id}`)} // ✅ NEW
+                className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-xl cursor-pointer transition"
               >
                 <img
                   src={user.profilePic}
-                  className="w-10 h-10 rounded-full object-cover"
+                  className="w-10 h-10 md:w-11 md:h-11 rounded-full object-cover flex-shrink-0"
                   alt="user"
                 />
-                <span className="font-medium">
+                <span className="font-medium text-sm md:text-base break-words">
                   {user.fullName}
                 </span>
               </div>
@@ -135,7 +131,7 @@ const Discover = () => {
         </div>
       )}
 
-      {/* 🔥 AUTHORITIES */}
+      {/* AUTHORITIES */}
       {(activeTab === "all" || activeTab === "authorities") && (
         <div className="bg-white rounded-xl p-4 mt-6 shadow border">
           <h3 className="font-semibold mb-3 text-gray-700">
@@ -146,6 +142,7 @@ const Discover = () => {
             filteredAuthorities.map((auth) => (
               <div
                 key={auth._id || auth.id}
+                onClick={() => navigate(`/profile/${auth.id}`)} // ✅ NEW
                 className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded cursor-pointer transition"
               >
                 <img

@@ -11,10 +11,8 @@ const PostDetails = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await API.get("/posts");
-
-        // 🔥 find specific post
-        const found = res.data.find((p) => p.id === id);
+        const res = await API.get(`/posts/${id}`);
+        setPost(res.data);
 
         setPost(found);
       } catch (err) {
@@ -57,28 +55,19 @@ const PostDetails = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-6">
-      
       {/* 🔥 HEADER */}
-      <h1 className="text-2xl font-bold mb-4">
-        Complaint Tracking
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">Complaint Tracking</h1>
 
       {/* 🔥 CONTENT */}
       <div className="bg-white p-5 rounded-2xl shadow border">
-        
-        <p className="text-gray-800 font-medium">
-          {post.content}
-        </p>
+        <p className="text-gray-800 font-medium">{post.content}</p>
 
         {post.location && (
-          <p className="text-sm text-gray-500 mt-1">
-            📍 {post.location}
-          </p>
+          <p className="text-sm text-gray-500 mt-1">📍 {post.location}</p>
         )}
 
         <p className="text-xs text-gray-400 mt-2">
-          Created:{" "}
-          {new Date(post.createdAt).toLocaleString()}
+          Created: {new Date(post.createdAt).toLocaleString()}
         </p>
 
         {/* 🔥 STATUS BADGE */}
@@ -88,8 +77,8 @@ const PostDetails = () => {
               post.status === "RESOLVED"
                 ? "bg-green-100 text-green-600"
                 : post.status === "IN_PROGRESS"
-                ? "bg-blue-100 text-blue-600"
-                : "bg-yellow-100 text-yellow-600"
+                  ? "bg-blue-100 text-blue-600"
+                  : "bg-yellow-100 text-yellow-600"
             }`}
           >
             {post.status}
@@ -104,7 +93,6 @@ const PostDetails = () => {
         <div className="space-y-5">
           {steps.map((step, i) => (
             <div key={i} className="flex items-start gap-4">
-              
               {/* ICON */}
               <div>
                 {step.done ? (
@@ -138,14 +126,10 @@ const PostDetails = () => {
       {/* 🔥 AUTHORITY RESPONSE */}
       {(post.authorityMessage || post.proofImage) && (
         <div className="mt-6 bg-white p-5 rounded-2xl shadow border">
-          <h2 className="font-semibold mb-3">
-            Authority Update
-          </h2>
+          <h2 className="font-semibold mb-3">Authority Update</h2>
 
           {post.authorityMessage && (
-            <p className="text-gray-700 mb-3">
-              💬 {post.authorityMessage}
-            </p>
+            <p className="text-gray-700 mb-3">💬 {post.authorityMessage}</p>
           )}
 
           {post.proofImage && (
