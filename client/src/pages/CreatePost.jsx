@@ -166,11 +166,10 @@ const CreatePost = ({ onPost }) => {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-6 space-y-5 border">
+    <div className="w-full max-w-5xl min-w-0 mx-auto px-4 md:px-6 pb-24 pt-20 md:pt-6 overflow-x-hidden">
+      <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-4 md:p-6 space-y-5 border overflow-hidden">
         {/* USER */}
-        {/* USER */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           {(() => {
             const user = JSON.parse(localStorage.getItem("user"));
 
@@ -178,9 +177,10 @@ const CreatePost = ({ onPost }) => {
               <>
                 <img
                   src={user?.profilePic || "https://via.placeholder.com/100"}
-                  className="w-11 h-11 rounded-full shadow object-cover"
+                  className="w-11 h-11 rounded-full shadow object-cover flex-shrink-0"
                 />
-                <span className="font-semibold text-gray-800">
+
+                <span className="font-semibold text-gray-800 truncate">
                   {user?.fullName || "User"}
                 </span>
               </>
@@ -193,31 +193,33 @@ const CreatePost = ({ onPost }) => {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Report issue in your area..."
-          className="w-full bg-gray-50 border rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full bg-gray-50 border rounded-xl p-4 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          rows={5}
         />
 
         {/* LOCATION + CATEGORY */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           {/* LOCATION */}
           <div
             onClick={getLocation}
-            className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full text-sm cursor-pointer"
+            className="flex items-center gap-2 bg-gray-100 px-4 py-3 rounded-full text-sm cursor-pointer w-full sm:w-auto"
           >
-            <MapPin size={16} />
-            <span className="truncate max-w-[200px]">
-              {location || "Add Location"}
-            </span>
+            <MapPin size={16} className="flex-shrink-0" />
+
+            <span className="truncate">{location || "Add Location"}</span>
           </div>
 
           {/* CATEGORY */}
-          <div className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full text-sm">
-            <Tag size={16} />
+          <div className="flex items-center gap-2 bg-gray-100 px-4 py-3 rounded-full text-sm w-full sm:w-auto">
+            <Tag size={16} className="flex-shrink-0" />
+
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="bg-transparent outline-none"
+              className="bg-transparent outline-none w-full"
             >
               <option value="">Category</option>
+
               {categories.map((c) => (
                 <option key={c}>{c}</option>
               ))}
@@ -243,42 +245,51 @@ const CreatePost = ({ onPost }) => {
           </button>
         )}
 
+        {/* AUTHORITY SEARCH */}
         {showMention && (
-          <div className="border rounded-xl p-3 bg-gray-50">
+          <div className="border rounded-xl p-3 bg-gray-50 overflow-hidden">
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search authority..."
-              className="w-full border px-3 py-2 rounded-lg text-sm"
+              className="w-full border px-3 py-2 rounded-lg text-sm outline-none"
             />
 
-            {filtered.map((auth, i) => (
-              <div
-                key={i}
-                onClick={() => handleSelect(auth)}
-                className="p-2 hover:bg-gray-200 cursor-pointer rounded-lg"
-              >
-                {auth.fullName}
-              </div>
-            ))}
+            <div className="mt-2 max-h-52 overflow-y-auto">
+              {filtered.map((auth, i) => (
+                <div
+                  key={i}
+                  onClick={() => handleSelect(auth)}
+                  className="p-2 hover:bg-gray-200 cursor-pointer rounded-lg text-sm"
+                >
+                  {auth.fullName}
+                </div>
+              ))}
+            </div>
           </div>
         )}
+
+        {/* SELECTED AUTHORITY */}
         {selectedAuthority && (
-          <div className="flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-sm">
+          <div className="flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-sm break-words">
             Mentioned: {selectedAuthority.fullName}
           </div>
         )}
 
         {/* IMAGE */}
         {image && (
-          <div className="relative">
-            <img src={image} className="w-full rounded-xl" />
+          <div className="relative overflow-hidden rounded-xl">
+            <img
+              src={image}
+              className="w-full h-auto max-h-[500px] object-cover rounded-xl"
+            />
+
             <button
               onClick={() => {
                 setImage(null);
                 setImageFile(null);
               }}
-              className="absolute top-2 right-2 bg-black text-white p-1 rounded-full"
+              className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full"
             >
               <X size={14} />
             </button>
@@ -286,25 +297,32 @@ const CreatePost = ({ onPost }) => {
         )}
 
         {/* ACTION */}
-        <div className="flex justify-between border-t pt-4">
-          <label className="cursor-pointer flex items-center gap-1">
+        <div className="flex items-center justify-between border-t pt-4">
+          {/* IMAGE PICKER */}
+          <label className="cursor-pointer flex items-center gap-2 text-gray-700">
             <Image size={18} />
+
+            <span className="text-sm hidden sm:block">Add Image</span>
+
             <input
               type="file"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files[0];
+
+                if (!file) return;
+
                 setImage(URL.createObjectURL(file));
                 setImageFile(file);
               }}
             />
           </label>
 
-          {/* 🔥 BUTTON FIX */}
+          {/* POST BUTTON */}
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-blue-600 text-white px-5 py-2 rounded-full flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-70 text-white px-5 py-2 rounded-full flex items-center gap-2 transition-all"
           >
             {loading ? (
               "Posting..."

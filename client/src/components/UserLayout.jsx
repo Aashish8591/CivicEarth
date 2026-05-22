@@ -14,7 +14,7 @@ const UserLayout = () => {
       </div>
 
       {/* MAIN AREA */}
-      <div className="flex-1 md:ml-64 flex flex-col h-screen">
+      <div className="flex-1 min-w-0 md:ml-64 flex flex-col h-screen overflow-x-hidden">
 
         {/* MOBILE TOPBAR */}
         <MobileTopbar />
@@ -25,7 +25,7 @@ const UserLayout = () => {
         </div>
 
         {/* SCROLLABLE CONTENT */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 pb-24">
+        <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 md:p-6 pb-24">
           <Outlet />
         </div>
 

@@ -122,7 +122,7 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6">
+    <div className="w-full max-w-5xl mx-auto px-4 md:px-6 pb-10 pt-25 md:pt-6">
       {/* 🔥 SPACE */}
       <div className="hidden md:block h-16" />
 

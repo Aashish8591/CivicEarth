@@ -92,7 +92,7 @@ const AuthorityProfile = () => {
     : posts.filter((p) => p.status === "RESOLVED");
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-6 py-6">
+    <div className="w-full max-w-5xl mx-auto px-4 md:px-6 pb-10 pt-14 md:pt-6">
       <div className="hidden md:block h-16" />
 
       {/* 🔥 PROFILE CARD */}

@@ -22,7 +22,7 @@ const AuthorityMobileTopbar = () => {
   };
 
   return (
-    <div className="md:hidden sticky top-0 z-50 bg-white border-b px-4 py-3 flex items-center justify-between">
+    <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b px-4 py-3 flex items-center justify-between">
 
       {/* LEFT */}
       <h1 className="text-lg font-bold text-blue-600">

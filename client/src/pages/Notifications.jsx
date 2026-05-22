@@ -37,7 +37,7 @@ const Notifications = () => {
       : notifications.filter((n) => n.status === filter);
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 md:px-6 py-4 md:py-6">
+    <div className="w-full max-w-5xl mx-auto px-4 md:px-6 pb-10 pt-20 md:pt-6">
       {/* 🔥 HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
