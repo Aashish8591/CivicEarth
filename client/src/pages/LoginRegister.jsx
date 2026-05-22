@@ -21,6 +21,29 @@ const LoginRegister = () => {
   const [registerPassword, setRegisterPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const departments = [
+    {
+      label: "Roads",
+      value: "ROAD",
+    },
+    {
+      label: "Water Supply",
+      value: "WATER",
+    },
+    {
+      label: "Drainage",
+      value: "DRAINAGE",
+    },
+    {
+      label: "Garbage",
+      value: "GARBAGE",
+    },
+    {
+      label: "Electricity",
+      value: "ELECTRICITY",
+    },
+  ];
+
   // 🔥 ROLE STATE
   const [role, setRole] = useState("USER");
 
@@ -32,18 +55,14 @@ const LoginRegister = () => {
     if (!fullName) return "Full name is required";
     if (!registerEmail.includes("@")) return "Invalid email";
     if (!location) return "Location required";
-    if (registerPassword.length < 6)
-      return "Password must be 6+ chars";
+    if (registerPassword.length < 6) return "Password must be 6+ chars";
 
-    if (registerPassword !== confirmPassword)
-      return "Passwords do not match";
+    if (registerPassword !== confirmPassword) return "Passwords do not match";
 
     if (role === "ADMIN") {
-      if (!department)
-        return "Department required for authority";
+      if (!department) return "Department required for authority";
 
-      if (!adminCode)
-        return "Admin code required";
+      if (!adminCode) return "Admin code required";
     }
 
     return null;
@@ -53,11 +72,9 @@ const LoginRegister = () => {
   const handleLogin = async () => {
     setError("");
 
-    if (!loginEmail.includes("@"))
-      return setError("Invalid email");
+    if (!loginEmail.includes("@")) return setError("Invalid email");
 
-    if (!loginPassword)
-      return setError("Password required");
+    if (!loginPassword) return setError("Password required");
 
     try {
       const res = await API.post("/auth/login", {
@@ -69,10 +86,7 @@ const LoginRegister = () => {
       localStorage.setItem("role", res.data.role);
 
       if (res.data.user) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(res.data.user)
-        );
+        localStorage.setItem("user", JSON.stringify(res.data.user));
       }
 
       window.dispatchEvent(new Event("authChanged"));
@@ -82,7 +96,6 @@ const LoginRegister = () => {
       } else {
         navigate("/");
       }
-
     } catch (err) {
       console.log(err);
       setError("Invalid credentials ❌");
@@ -118,7 +131,6 @@ const LoginRegister = () => {
       setRole("USER");
 
       setIsActive(false);
-
     } catch (err) {
       console.log(err);
       setError("Registration failed ❌");
@@ -127,16 +139,12 @@ const LoginRegister = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-200 via-purple-200 to-pink-200 overflow-hidden">
-
       {/* MOBILE TOGGLE */}
       <div className="md:hidden absolute top-6 z-50 flex bg-white p-1 rounded-full shadow-lg">
-
         <button
           onClick={() => setIsActive(false)}
           className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
-            !isActive
-              ? "bg-blue-600 text-white"
-              : "text-gray-700"
+            !isActive ? "bg-blue-600 text-white" : "text-gray-700"
           }`}
         >
           Login
@@ -145,19 +153,15 @@ const LoginRegister = () => {
         <button
           onClick={() => setIsActive(true)}
           className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
-            isActive
-              ? "bg-green-600 text-white"
-              : "text-gray-700"
+            isActive ? "bg-green-600 text-white" : "text-gray-700"
           }`}
         >
           Register
         </button>
-
       </div>
 
       {/* MAIN CONTAINER */}
       <div className="relative w-full max-w-5xl h-screen md:h-[620px] rounded-none md:rounded-3xl overflow-hidden shadow-2xl bg-white/70 backdrop-blur-lg">
-
         {/* LOGIN */}
         <div
           className={`absolute md:w-1/2 w-full h-full flex flex-col justify-center px-6 md:px-12 transition-all duration-700 bg-white md:bg-transparent ${
@@ -166,13 +170,8 @@ const LoginRegister = () => {
               : "translate-x-0 opacity-100"
           }`}
         >
-
           <div className="w-full max-w-md mx-auto">
-
-            <img
-              src={logo}
-              className="w-16 mx-auto mb-5"
-            />
+            <img src={logo} className="w-16 mx-auto mb-5" />
 
             <h2 className="text-4xl font-bold text-center mb-10 text-gray-800">
               Welcome Back
@@ -182,9 +181,7 @@ const LoginRegister = () => {
               className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500 transition"
               placeholder="Email"
               value={loginEmail}
-              onChange={(e) =>
-                setLoginEmail(e.target.value)
-              }
+              onChange={(e) => setLoginEmail(e.target.value)}
             />
 
             <input
@@ -192,16 +189,10 @@ const LoginRegister = () => {
               type="password"
               placeholder="Password"
               value={loginPassword}
-              onChange={(e) =>
-                setLoginPassword(e.target.value)
-              }
+              onChange={(e) => setLoginPassword(e.target.value)}
             />
 
-            {error && (
-              <p className="text-red-500 text-sm mb-3">
-                {error}
-              </p>
-            )}
+            {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
             <button
               onClick={handleLogin}
@@ -209,7 +200,6 @@ const LoginRegister = () => {
             >
               Login
             </button>
-
           </div>
         </div>
 
@@ -221,13 +211,8 @@ const LoginRegister = () => {
               : "opacity-0 pointer-events-none md:flex"
           }`}
         >
-
           <div className="w-full max-w-md mx-auto pb-10">
-
-            <img
-              src={logo}
-              className="w-16 mx-auto mb-5"
-            />
+            <img src={logo} className="w-16 mx-auto mb-5" />
 
             <h2 className="text-4xl font-bold text-center mb-8 text-gray-800">
               Create Account
@@ -235,7 +220,6 @@ const LoginRegister = () => {
 
             {/* ROLE TOGGLE */}
             <div className="flex bg-gray-100 rounded-2xl p-1 mb-4">
-
               <button
                 type="button"
                 onClick={() => setRole("USER")}
@@ -259,54 +243,50 @@ const LoginRegister = () => {
               >
                 Authority
               </button>
-
             </div>
 
             <input
               placeholder="Full Name"
               value={fullName}
-              onChange={(e) =>
-                setFullName(e.target.value)
-              }
+              onChange={(e) => setFullName(e.target.value)}
               className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
             />
 
             <input
               placeholder="Email"
               value={registerEmail}
-              onChange={(e) =>
-                setRegisterEmail(e.target.value)
-              }
+              onChange={(e) => setRegisterEmail(e.target.value)}
               className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
             />
 
             <input
               placeholder="Location"
               value={location}
-              onChange={(e) =>
-                setLocation(e.target.value)
-              }
+              onChange={(e) => setLocation(e.target.value)}
               className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
             />
 
             {/* ADMIN FIELDS */}
             {role === "ADMIN" && (
               <>
-                <input
-                  placeholder="Department"
+                <select
                   value={department}
-                  onChange={(e) =>
-                    setDepartment(e.target.value)
-                  }
+                  onChange={(e) => setDepartment(e.target.value)}
                   className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
-                />
+                >
+                  <option value="">Select Department</option>
+
+                  {departments.map((dept) => (
+                    <option key={dept.value} value={dept.value}>
+                      {dept.label}
+                    </option>
+                  ))}
+                </select>
 
                 <input
                   placeholder="Admin Code"
                   value={adminCode}
-                  onChange={(e) =>
-                    setAdminCode(e.target.value)
-                  }
+                  onChange={(e) => setAdminCode(e.target.value)}
                   className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
                 />
               </>
@@ -316,9 +296,7 @@ const LoginRegister = () => {
               placeholder="Password"
               type="password"
               value={registerPassword}
-              onChange={(e) =>
-                setRegisterPassword(e.target.value)
-              }
+              onChange={(e) => setRegisterPassword(e.target.value)}
               className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
             />
 
@@ -326,17 +304,11 @@ const LoginRegister = () => {
               placeholder="Confirm Password"
               type="password"
               value={confirmPassword}
-              onChange={(e) =>
-                setConfirmPassword(e.target.value)
-              }
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
             />
 
-            {error && (
-              <p className="text-red-500 text-sm mb-3">
-                {error}
-              </p>
-            )}
+            {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
             <button
               onClick={handleRegister}
@@ -344,7 +316,6 @@ const LoginRegister = () => {
             >
               Register
             </button>
-
           </div>
         </div>
 
@@ -354,21 +325,14 @@ const LoginRegister = () => {
             isActive ? "-translate-x-full" : ""
           }`}
         >
-
-          <img
-            src={leftImg}
-            className="absolute w-full h-full object-cover"
-          />
+          <img src={leftImg} className="absolute w-full h-full object-cover" />
 
           <div className="absolute inset-0 bg-black/50"></div>
 
           <div className="relative text-white text-center px-6">
-
             {!isActive ? (
               <>
-                <h2 className="text-5xl font-bold">
-                  New here?
-                </h2>
+                <h2 className="text-5xl font-bold">New here?</h2>
 
                 <button
                   onClick={() => setIsActive(true)}
@@ -379,9 +343,7 @@ const LoginRegister = () => {
               </>
             ) : (
               <>
-                <h2 className="text-5xl font-bold">
-                  Welcome Back!
-                </h2>
+                <h2 className="text-5xl font-bold">Welcome Back!</h2>
 
                 <button
                   onClick={() => setIsActive(false)}
@@ -391,7 +353,6 @@ const LoginRegister = () => {
                 </button>
               </>
             )}
-
           </div>
         </div>
       </div>

@@ -19,7 +19,28 @@ const CreatePost = ({ onPost }) => {
   const [query, setQuery] = useState("");
   const [selectedAuthority, setSelectedAuthority] = useState(null);
 
-  const categories = ["Roads", "Water", "Drainage", "Garbage", "Electricity"];
+  const categories = [
+    {
+      label: "Roads",
+      value: "ROAD",
+    },
+    {
+      label: "Water Supply",
+      value: "WATER",
+    },
+    {
+      label: "Drainage",
+      value: "DRAINAGE",
+    },
+    {
+      label: "Garbage",
+      value: "GARBAGE",
+    },
+    {
+      label: "Electricity",
+      value: "ELECTRICITY",
+    },
+  ];
 
   const [authorities, setAuthorities] = useState([]);
   useEffect(() => {
@@ -124,14 +145,6 @@ const CreatePost = ({ onPost }) => {
 
       const user = JSON.parse(localStorage.getItem("user"));
 
-      const categoryDepartmentMap = {
-        Roads: "ROADS",
-        Water: "WATER",
-        Garbage: "GARBAGE",
-        Electricity: "ELECTRICITY",
-        Drainage: "DRAINAGE",
-      };
-
       await API.post("/posts", {
         userId: user.id,
         content,
@@ -143,7 +156,7 @@ const CreatePost = ({ onPost }) => {
         longitude: lng,
 
         // 🔥 IMPORTANT ADD THIS
-        department: categoryDepartmentMap[category] || "General",
+        department: category,
       });
 
       // 🔥 UPDATE UI
@@ -221,7 +234,9 @@ const CreatePost = ({ onPost }) => {
               <option value="">Category</option>
 
               {categories.map((c) => (
-                <option key={c}>{c}</option>
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
               ))}
             </select>
           </div>

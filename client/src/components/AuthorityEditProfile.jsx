@@ -1,6 +1,29 @@
 import React, { useState } from "react";
 import API from "../api";
 
+const departments = [
+  {
+    label: "Roads",
+    value: "ROAD",
+  },
+  {
+    label: "Water Supply",
+    value: "WATER",
+  },
+  {
+    label: "Drainage",
+    value: "DRAINAGE",
+  },
+  {
+    label: "Garbage",
+    value: "GARBAGE",
+  },
+  {
+    label: "Electricity",
+    value: "ELECTRICITY",
+  },
+];
+
 const AuthorityEditProfile = ({ close }) => {
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -10,20 +33,25 @@ const AuthorityEditProfile = ({ close }) => {
     bio: user.bio || "",
     location: user.location || "",
     profilePic: user.profilePic || "",
-    department: user.department || "", // 🔥 NEW
+    department: user.department || "",
   });
 
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+
     if (file) {
       setImageFile(file);
+
       setForm({
         ...form,
         profilePic: URL.createObjectURL(file),
@@ -40,6 +68,7 @@ const AuthorityEditProfile = ({ close }) => {
       // 🔥 IMAGE UPLOAD
       if (imageFile) {
         const data = new FormData();
+
         data.append("file", imageFile);
         data.append("upload_preset", "civic_upload");
 
@@ -52,6 +81,7 @@ const AuthorityEditProfile = ({ close }) => {
         );
 
         const result = await uploadRes.json();
+
         updatedData.profilePic = result.secure_url;
       }
 
@@ -65,13 +95,19 @@ const AuthorityEditProfile = ({ close }) => {
         ...updatedData,
       };
 
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      localStorage.setItem(
+        "user",
+        JSON.stringify(updatedUser)
+      );
 
       window.dispatchEvent(
-        new CustomEvent("userUpdated", { detail: updatedUser })
+        new CustomEvent("userUpdated", {
+          detail: updatedUser,
+        })
       );
 
       alert("Profile updated ✅");
+
       close();
 
     } catch (err) {
@@ -83,45 +119,54 @@ const AuthorityEditProfile = ({ close }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white w-[700px] rounded-2xl shadow-xl overflow-hidden">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+
+      <div className="bg-white w-full max-w-[700px] rounded-2xl shadow-xl overflow-hidden">
 
         {/* HEADER */}
         <div className="text-center py-4 border-b text-xl font-semibold">
           Edit Profile
         </div>
 
-        <div className="flex">
+        <div className="flex flex-col md:flex-row">
 
           {/* LEFT */}
-          <div className="w-1/3 bg-gray-50 flex flex-col items-center p-6 gap-4">
+          <div className="w-full md:w-1/3 bg-gray-50 flex flex-col items-center p-6 gap-4">
 
             <label className="cursor-pointer">
+
               <img
-                src={form.profilePic || "https://via.placeholder.com/100"}
+                src={
+                  form.profilePic ||
+                  "https://via.placeholder.com/100"
+                }
                 alt="profile"
                 className="w-24 h-24 rounded-full object-cover border hover:opacity-80"
               />
+
               <input
                 type="file"
                 accept="image/*"
                 className="hidden"
                 onChange={handleImageChange}
               />
+
             </label>
 
-            <p className="text-sm text-gray-500">Click to change photo</p>
+            <p className="text-sm text-gray-500 text-center">
+              Click to change photo
+            </p>
           </div>
 
           {/* RIGHT */}
-          <div className="w-2/3 p-6 space-y-4">
+          <div className="w-full md:w-2/3 p-6 space-y-4">
 
             <input
               name="fullName"
               value={form.fullName}
               onChange={handleChange}
               placeholder="Full Name"
-              className="border p-2 rounded w-full"
+              className="border p-3 rounded-xl w-full outline-none focus:ring-2 focus:ring-green-500"
             />
 
             <input
@@ -129,7 +174,7 @@ const AuthorityEditProfile = ({ close }) => {
               value={form.email}
               onChange={handleChange}
               placeholder="Email"
-              className="border p-2 rounded w-full"
+              className="border p-3 rounded-xl w-full outline-none focus:ring-2 focus:ring-green-500"
             />
 
             <input
@@ -137,18 +182,33 @@ const AuthorityEditProfile = ({ close }) => {
               value={form.location}
               onChange={handleChange}
               placeholder="Location"
-              className="border p-2 rounded w-full"
+              className="border p-3 rounded-xl w-full outline-none focus:ring-2 focus:ring-green-500"
             />
 
             {/* 🔥 SHOW ONLY FOR AUTHORITY */}
             {user.role === "ADMIN" && (
-              <input
+
+              <select
                 name="department"
                 value={form.department}
                 onChange={handleChange}
-                placeholder="Department"
-                className="border p-2 rounded w-full"
-              />
+                className="border p-3 rounded-xl w-full outline-none focus:ring-2 focus:ring-green-500"
+              >
+
+                <option value="">
+                  Select Department
+                </option>
+
+                {departments.map((dept) => (
+                  <option
+                    key={dept.value}
+                    value={dept.value}
+                  >
+                    {dept.label}
+                  </option>
+                ))}
+
+              </select>
             )}
 
             <textarea
@@ -156,7 +216,7 @@ const AuthorityEditProfile = ({ close }) => {
               value={form.bio}
               onChange={handleChange}
               placeholder="Bio"
-              className="border p-2 rounded w-full"
+              className="border p-3 rounded-xl w-full outline-none focus:ring-2 focus:ring-green-500"
               rows="4"
             />
           </div>
@@ -164,9 +224,10 @@ const AuthorityEditProfile = ({ close }) => {
 
         {/* FOOTER */}
         <div className="flex justify-between items-center p-4 border-t">
+
           <button
             onClick={close}
-            className="px-6 py-2 bg-gray-200 rounded-full"
+            className="px-6 py-2 bg-gray-200 rounded-full hover:bg-gray-300 transition"
           >
             Cancel
           </button>
@@ -174,10 +235,11 @@ const AuthorityEditProfile = ({ close }) => {
           <button
             onClick={handleSave}
             disabled={loading}
-            className="px-6 py-2 bg-green-500 text-white rounded-full disabled:opacity-50"
+            className="px-6 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save"}
           </button>
+
         </div>
       </div>
     </div>
