@@ -161,10 +161,10 @@ const LoginRegister = () => {
       </div>
 
       {/* MAIN CONTAINER */}
-      <div className="relative w-full max-w-5xl h-screen md:h-[620px] rounded-none md:rounded-3xl overflow-hidden shadow-2xl bg-white/70 backdrop-blur-lg">
+      <div className="relative w-full max-w-5xl min-h-screen md:h-[620px] rounded-none md:rounded-3xl overflow-hidden shadow-2xl bg-white">
         {/* LOGIN */}
         <div
-          className={`absolute md:w-1/2 w-full h-full flex flex-col justify-center px-6 md:px-12 transition-all duration-700 bg-white md:bg-transparent ${
+          className={`absolute md:w-1/2 w-full h-full flex flex-col justify-center px-6 md:px-12 transition duration-300 bg-white md:bg-transparent ${
             isActive
               ? "md:translate-x-full md:opacity-0 hidden md:flex"
               : "translate-x-0 opacity-100"
@@ -205,7 +205,7 @@ const LoginRegister = () => {
 
         {/* REGISTER */}
         <div
-          className={`absolute md:w-1/2 w-full h-full flex flex-col justify-start px-6 md:px-12 pt-20 md:pt-6 overflow-y-auto bg-white md:bg-transparent transition-all duration-700 ${
+          className={`absolute md:w-1/2 w-full h-full flex flex-col justify-start px-6 md:px-12 pt-20 md:pt-6 overflow-y-auto bg-white md:bg-transparent transition duration-300 ${
             isActive
               ? "md:translate-x-full translate-x-0 opacity-100"
               : "opacity-0 pointer-events-none md:flex"
@@ -321,7 +321,7 @@ const LoginRegister = () => {
 
         {/* DESKTOP RIGHT PANEL */}
         <div
-          className={`hidden md:flex absolute right-0 w-1/2 h-full items-center justify-center transition-all duration-700 ${
+          className={`hidden md:flex absolute right-0 w-1/2 h-full items-center justify-center transition duration-300 ${
             isActive ? "-translate-x-full" : ""
           }`}
         >
