@@ -14,24 +14,20 @@ const AuthorityMobileTopbar = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
+    localStorage.clear();
+
+    window.dispatchEvent(new Event("authChanged"));
 
     navigate("/login");
   };
 
   return (
     <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b px-4 py-3 flex items-center justify-between">
-
       {/* LEFT */}
-      <h1 className="text-lg font-bold text-blue-600">
-        Authority Panel
-      </h1>
+      <h1 className="text-lg font-bold text-blue-600">Authority Panel</h1>
 
       {/* RIGHT */}
       <div className="flex items-center gap-4">
-
         <Bell
           size={20}
           className="text-gray-700"
@@ -40,7 +36,6 @@ const AuthorityMobileTopbar = () => {
 
         {/* PROFILE */}
         <div className="relative">
-
           <img
             src={user?.profilePic}
             onClick={() => setShowMenu(!showMenu)}
@@ -50,7 +45,6 @@ const AuthorityMobileTopbar = () => {
           {/* DROPDOWN */}
           {showMenu && (
             <div className="absolute right-0 mt-3 w-44 bg-white rounded-xl shadow-lg border overflow-hidden z-[99999]">
-
               <button
                 onClick={() => {
                   navigate("/admin/profile");
@@ -70,7 +64,6 @@ const AuthorityMobileTopbar = () => {
               >
                 Logout
               </button>
-
             </div>
           )}
         </div>

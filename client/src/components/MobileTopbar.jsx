@@ -27,16 +27,15 @@ const MobileTopbar = () => {
 
   // 🔥 LOGOUT
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
+    localStorage.clear();
+
+    window.dispatchEvent(new Event("authChanged"));
 
     navigate("/login");
   };
 
   return (
     <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b px-4 py-3 flex items-center justify-between">
-
       {/* LEFT */}
       <h1
         onClick={() => navigate("/")}
@@ -47,7 +46,6 @@ const MobileTopbar = () => {
 
       {/* RIGHT */}
       <div className="flex items-center gap-4">
-
         {/* SEARCH */}
         <Search
           size={20}
@@ -64,7 +62,6 @@ const MobileTopbar = () => {
 
         {/* PROFILE */}
         <div className="relative">
-
           {user?.profilePic ? (
             <img
               src={`${user.profilePic}?t=${Date.now()}`}
@@ -84,14 +81,11 @@ const MobileTopbar = () => {
           {/* DROPDOWN */}
           {showMenu && (
             <div className="absolute right-0 mt-3 w-44 bg-white rounded-xl shadow-lg border overflow-hidden z-[99999]">
-
               {/* PROFILE */}
               <button
                 onClick={() => {
                   navigate(
-                    user?.role === "ADMIN"
-                      ? "/admin/profile"
-                      : "/profile"
+                    user?.role === "ADMIN" ? "/admin/profile" : "/profile",
                   );
 
                   setShowMenu(false);
@@ -111,7 +105,6 @@ const MobileTopbar = () => {
               >
                 Logout
               </button>
-
             </div>
           )}
         </div>

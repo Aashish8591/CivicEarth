@@ -5,6 +5,8 @@ import logo from "../assets/civicEarthlogo.png";
 import leftImg from "../assets/loginLeftImg.jpg";
 
 const LoginRegister = () => {
+  const navigate = useNavigate();
+
   const [isActive, setIsActive] = useState(false);
 
   const [department, setDepartment] = useState("");
@@ -21,46 +23,39 @@ const LoginRegister = () => {
   const [registerPassword, setRegisterPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const departments = [
-    {
-      label: "Roads",
-      value: "ROAD",
-    },
-    {
-      label: "Water Supply",
-      value: "WATER",
-    },
-    {
-      label: "Drainage",
-      value: "DRAINAGE",
-    },
-    {
-      label: "Garbage",
-      value: "GARBAGE",
-    },
-    {
-      label: "Electricity",
-      value: "ELECTRICITY",
-    },
-  ];
-
-  // 🔥 ROLE STATE
   const [role, setRole] = useState("USER");
 
   const [error, setError] = useState("");
 
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const departments = [
+    { label: "Roads", value: "ROAD" },
+    { label: "Water Supply", value: "WATER" },
+    { label: "Drainage", value: "DRAINAGE" },
+    { label: "Garbage", value: "GARBAGE" },
+    { label: "Electricity", value: "ELECTRICITY" },
+  ];
 
   const validateRegister = () => {
     if (!fullName) return "Full name is required";
-    if (!registerEmail.includes("@")) return "Invalid email";
-    if (!location) return "Location required";
-    if (registerPassword.length < 6) return "Password must be 6+ chars";
 
-    if (registerPassword !== confirmPassword) return "Passwords do not match";
+    if (!registerEmail.includes("@")) {
+      return "Invalid email";
+    }
+
+    if (!location) return "Location required";
+
+    if (registerPassword.length < 6) {
+      return "Password must be 6+ chars";
+    }
+
+    if (registerPassword !== confirmPassword) {
+      return "Passwords do not match";
+    }
 
     if (role === "ADMIN") {
-      if (!department) return "Department required for authority";
+      if (!department) return "Department required";
 
       if (!adminCode) return "Admin code required";
     }
@@ -68,15 +63,21 @@ const LoginRegister = () => {
     return null;
   };
 
-  // 🔐 LOGIN
+  // LOGIN
   const handleLogin = async () => {
     setError("");
 
-    if (!loginEmail.includes("@")) return setError("Invalid email");
+    if (!loginEmail.includes("@")) {
+      return setError("Invalid email");
+    }
 
-    if (!loginPassword) return setError("Password required");
+    if (!loginPassword) {
+      return setError("Password required");
+    }
 
     try {
+      setLoading(true);
+
       const res = await API.post("/auth/login", {
         email: loginEmail,
         password: loginPassword,
@@ -86,23 +87,31 @@ const LoginRegister = () => {
       localStorage.setItem("role", res.data.role);
 
       if (res.data.user) {
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem(
+          "user",
+          JSON.stringify(res.data.user)
+        );
       }
 
-      window.dispatchEvent(new Event("authChanged"));
+      window.dispatchEvent(
+        new Event("authChanged")
+      );
 
       if (res.data.role === "ADMIN") {
         navigate("/admin");
       } else {
         navigate("/");
       }
+
     } catch (err) {
       console.log(err);
       setError("Invalid credentials ❌");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 📝 REGISTER
+  // REGISTER
   const handleRegister = async () => {
     setError("");
 
@@ -111,6 +120,8 @@ const LoginRegister = () => {
     if (err) return setError(err);
 
     try {
+      setLoading(true);
+
       await API.post("/auth/register", {
         fullName,
         email: registerEmail,
@@ -128,23 +139,31 @@ const LoginRegister = () => {
       setRegisterPassword("");
       setConfirmPassword("");
       setLocation("");
+      setDepartment("");
+      setAdminCode("");
       setRole("USER");
 
       setIsActive(false);
+
     } catch (err) {
       console.log(err);
       setError("Registration failed ❌");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-200 via-purple-200 to-pink-200 overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 overflow-y-auto">
+
       {/* MOBILE TOGGLE */}
-      <div className="md:hidden absolute top-6 z-50 flex bg-white p-1 rounded-full shadow-lg">
+      <div className="md:hidden fixed top-5 z-50 flex bg-white p-1 rounded-full shadow-md">
         <button
           onClick={() => setIsActive(false)}
-          className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
-            !isActive ? "bg-blue-600 text-white" : "text-gray-700"
+          className={`px-6 py-2 rounded-full text-sm font-medium transition duration-200 ${
+            !isActive
+              ? "bg-blue-600 text-white"
+              : "text-gray-700"
           }`}
         >
           Login
@@ -152,8 +171,10 @@ const LoginRegister = () => {
 
         <button
           onClick={() => setIsActive(true)}
-          className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
-            isActive ? "bg-green-600 text-white" : "text-gray-700"
+          className={`px-6 py-2 rounded-full text-sm font-medium transition duration-200 ${
+            isActive
+              ? "bg-green-600 text-white"
+              : "text-gray-700"
           }`}
         >
           Register
@@ -161,200 +182,253 @@ const LoginRegister = () => {
       </div>
 
       {/* MAIN CONTAINER */}
-      <div className="relative w-full max-w-5xl min-h-screen md:h-[620px] rounded-none md:rounded-3xl overflow-hidden shadow-2xl bg-white">
+      <div className="relative w-full max-w-5xl bg-white shadow-md md:rounded-3xl overflow-hidden md:h-[620px]">
+
         {/* LOGIN */}
-        <div
-          className={`absolute md:w-1/2 w-full h-full flex flex-col justify-center px-6 md:px-12 transition duration-300 bg-white md:bg-transparent ${
-            isActive
-              ? "md:translate-x-full md:opacity-0 hidden md:flex"
-              : "translate-x-0 opacity-100"
-          }`}
-        >
-          <div className="w-full max-w-md mx-auto">
-            <img src={logo} className="w-16 mx-auto mb-5" />
+        {!isActive && (
+          <div className="w-full md:w-1/2 min-h-screen md:min-h-full flex flex-col justify-center px-6 md:px-12 bg-white">
 
-            <h2 className="text-4xl font-bold text-center mb-10 text-gray-800">
-              Welcome Back
-            </h2>
+            <div className="w-full max-w-md mx-auto">
 
-            <input
-              className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500 transition"
-              placeholder="Email"
-              value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
-            />
+              <img
+                src={logo}
+                className="w-16 mx-auto mb-5"
+                loading="lazy"
+                alt="logo"
+              />
 
-            <input
-              className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500 transition"
-              type="password"
-              placeholder="Password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-            />
+              <h2 className="text-4xl font-bold text-center mb-10 text-gray-800">
+                Welcome Back
+              </h2>
 
-            {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+              <input
+                className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Email"
+                value={loginEmail}
+                onChange={(e) =>
+                  setLoginEmail(e.target.value)
+                }
+              />
 
-            <button
-              onClick={handleLogin}
-              className="w-full py-4 rounded-2xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all"
-            >
-              Login
-            </button>
+              <input
+                type="password"
+                placeholder="Password"
+                value={loginPassword}
+                onChange={(e) =>
+                  setLoginPassword(e.target.value)
+                }
+                className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              {error && (
+                <p className="text-red-500 text-sm mb-3">
+                  {error}
+                </p>
+              )}
+
+              <button
+                onClick={handleLogin}
+                disabled={loading}
+                className="w-full py-4 rounded-2xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition duration-200 disabled:opacity-60"
+              >
+                {loading ? "Please wait..." : "Login"}
+              </button>
+
+            </div>
           </div>
-        </div>
+        )}
 
         {/* REGISTER */}
-        <div
-          className={`absolute md:w-1/2 w-full h-full flex flex-col justify-start px-6 md:px-12 pt-20 md:pt-6 overflow-y-auto bg-white md:bg-transparent transition duration-300 ${
-            isActive
-              ? "md:translate-x-full translate-x-0 opacity-100"
-              : "opacity-0 pointer-events-none md:flex"
-          }`}
-        >
-          <div className="w-full max-w-md mx-auto pb-10">
-            <img src={logo} className="w-16 mx-auto mb-5" />
+        {isActive && (
+          <div className="w-full md:w-1/2 min-h-screen md:min-h-full overflow-y-auto px-6 md:px-12 pt-24 md:pt-8 bg-white">
 
-            <h2 className="text-4xl font-bold text-center mb-8 text-gray-800">
-              Create Account
-            </h2>
+            <div className="w-full max-w-md mx-auto pb-10">
 
-            {/* ROLE TOGGLE */}
-            <div className="flex bg-gray-100 rounded-2xl p-1 mb-4">
-              <button
-                type="button"
-                onClick={() => setRole("USER")}
-                className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
-                  role === "USER"
-                    ? "bg-blue-600 text-white shadow"
-                    : "text-gray-600"
-                }`}
-              >
-                User
-              </button>
+              <img
+                src={logo}
+                className="w-16 mx-auto mb-5"
+                loading="lazy"
+                alt="logo"
+              />
 
-              <button
-                type="button"
-                onClick={() => setRole("ADMIN")}
-                className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
-                  role === "ADMIN"
-                    ? "bg-green-600 text-white shadow"
-                    : "text-gray-600"
-                }`}
-              >
-                Authority
-              </button>
-            </div>
+              <h2 className="text-4xl font-bold text-center mb-8 text-gray-800">
+                Create Account
+              </h2>
 
-            <input
-              placeholder="Full Name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
-            />
+              {/* ROLE */}
+              <div className="flex bg-gray-100 rounded-2xl p-1 mb-4">
 
-            <input
-              placeholder="Email"
-              value={registerEmail}
-              onChange={(e) => setRegisterEmail(e.target.value)}
-              className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
-            />
-
-            <input
-              placeholder="Location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
-            />
-
-            {/* ADMIN FIELDS */}
-            {role === "ADMIN" && (
-              <>
-                <select
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
+                <button
+                  type="button"
+                  onClick={() => setRole("USER")}
+                  className={`flex-1 py-3 rounded-xl text-sm font-medium transition duration-200 ${
+                    role === "USER"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-600"
+                  }`}
                 >
-                  <option value="">Select Department</option>
+                  User
+                </button>
 
-                  {departments.map((dept) => (
-                    <option key={dept.value} value={dept.value}>
-                      {dept.label}
+                <button
+                  type="button"
+                  onClick={() => setRole("ADMIN")}
+                  className={`flex-1 py-3 rounded-xl text-sm font-medium transition duration-200 ${
+                    role === "ADMIN"
+                      ? "bg-green-600 text-white"
+                      : "text-gray-600"
+                  }`}
+                >
+                  Authority
+                </button>
+              </div>
+
+              <input
+                placeholder="Full Name"
+                value={fullName}
+                onChange={(e) =>
+                  setFullName(e.target.value)
+                }
+                className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500"
+              />
+
+              <input
+                placeholder="Email"
+                value={registerEmail}
+                onChange={(e) =>
+                  setRegisterEmail(e.target.value)
+                }
+                className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500"
+              />
+
+              <input
+                placeholder="Location"
+                value={location}
+                onChange={(e) =>
+                  setLocation(e.target.value)
+                }
+                className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500"
+              />
+
+              {role === "ADMIN" && (
+                <>
+                  <select
+                    value={department}
+                    onChange={(e) =>
+                      setDepartment(e.target.value)
+                    }
+                    className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="">
+                      Select Department
                     </option>
-                  ))}
-                </select>
 
-                <input
-                  placeholder="Admin Code"
-                  value={adminCode}
-                  onChange={(e) => setAdminCode(e.target.value)}
-                  className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
-                />
-              </>
-            )}
+                    {departments.map((dept) => (
+                      <option
+                        key={dept.value}
+                        value={dept.value}
+                      >
+                        {dept.label}
+                      </option>
+                    ))}
+                  </select>
 
-            <input
-              placeholder="Password"
-              type="password"
-              value={registerPassword}
-              onChange={(e) => setRegisterPassword(e.target.value)}
-              className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
-            />
+                  <input
+                    placeholder="Admin Code"
+                    value={adminCode}
+                    onChange={(e) =>
+                      setAdminCode(e.target.value)
+                    }
+                    className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </>
+              )}
 
-            <input
-              placeholder="Confirm Password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500 transition"
-            />
+              <input
+                type="password"
+                placeholder="Password"
+                value={registerPassword}
+                onChange={(e) =>
+                  setRegisterPassword(e.target.value)
+                }
+                className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500"
+              />
 
-            {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+              <input
+                type="password"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) =>
+                  setConfirmPassword(e.target.value)
+                }
+                className="w-full mb-4 px-5 py-4 rounded-2xl border border-gray-200 bg-gray-50 outline-none focus:ring-2 focus:ring-green-500"
+              />
 
-            <button
-              onClick={handleRegister}
-              className="w-full py-4 rounded-2xl font-semibold text-white bg-green-600 hover:bg-green-700 transition-all"
-            >
-              Register
-            </button>
+              {error && (
+                <p className="text-red-500 text-sm mb-3">
+                  {error}
+                </p>
+              )}
+
+              <button
+                onClick={handleRegister}
+                disabled={loading}
+                className="w-full py-4 rounded-2xl font-semibold text-white bg-green-600 hover:bg-green-700 transition duration-200 disabled:opacity-60"
+              >
+                {loading
+                  ? "Please wait..."
+                  : "Register"}
+              </button>
+
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* DESKTOP RIGHT PANEL */}
-        <div
-          className={`hidden md:flex absolute right-0 w-1/2 h-full items-center justify-center transition duration-300 ${
-            isActive ? "-translate-x-full" : ""
-          }`}
-        >
-          <img src={leftImg} className="absolute w-full h-full object-cover" />
+        {/* DESKTOP RIGHT IMAGE */}
+        <div className="hidden md:flex absolute right-0 top-0 w-1/2 h-full items-center justify-center">
 
-          <div className="absolute inset-0 bg-black/50"></div>
+          <img
+            src={leftImg}
+            loading="lazy"
+            alt="background"
+            className="absolute w-full h-full object-cover"
+          />
+
+          <div className="absolute inset-0 bg-black/40"></div>
 
           <div className="relative text-white text-center px-6">
+
             {!isActive ? (
               <>
-                <h2 className="text-5xl font-bold">New here?</h2>
+                <h2 className="text-5xl font-bold">
+                  New here?
+                </h2>
 
                 <button
                   onClick={() => setIsActive(true)}
-                  className="mt-6 px-8 py-3 border rounded-full hover:bg-white hover:text-black transition-all"
+                  className="mt-6 px-8 py-3 border rounded-full hover:bg-white hover:text-black transition duration-200"
                 >
                   Register
                 </button>
               </>
             ) : (
               <>
-                <h2 className="text-5xl font-bold">Welcome Back!</h2>
+                <h2 className="text-5xl font-bold">
+                  Welcome Back!
+                </h2>
 
                 <button
                   onClick={() => setIsActive(false)}
-                  className="mt-6 px-8 py-3 border rounded-full hover:bg-white hover:text-black transition-all"
+                  className="mt-6 px-8 py-3 border rounded-full hover:bg-white hover:text-black transition duration-200"
                 >
                   Login
                 </button>
               </>
             )}
+
           </div>
         </div>
+
       </div>
     </div>
   );
